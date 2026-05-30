@@ -128,6 +128,26 @@ const CSS = `
 .quota { font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--muted); }
 .quota b { color: var(--amber); }
 
+/* stats */
+.stats-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.stat-team { background:#0a100e; border:1px solid var(--line2); border-radius:10px; padding:12px; }
+.stat-team .tname { font-family:'Anton',sans-serif; font-size:14px; text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+.form-dots { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:8px; }
+.form-dot { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; }
+.form-dot.W { background:rgba(212,255,63,0.18); color:var(--accent); }
+.form-dot.D { background:rgba(255,176,32,0.15); color:var(--amber); }
+.form-dot.L { background:rgba(255,93,115,0.15); color:var(--red); }
+.stat-line { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); }
+.stat-line b { color:var(--ink); }
+
+/* sources */
+.sources { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.src-link { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.5px; text-transform:uppercase;
+  padding:6px 10px; border-radius:8px; border:1px solid var(--line2); color:var(--muted);
+  text-decoration:none; transition: border-color .15s, color .15s; }
+.src-link:hover { border-color:var(--accent-dim); color:var(--ink); }
+
 .foot { color: var(--muted); font-size: 11.5px; line-height:1.6; margin-top: 26px; font-family:'JetBrains Mono',monospace; }
 .divider { height:1px; background: var(--line2); margin: 18px 0; }
 .mini { font-size: 11px; color: var(--muted); margin-top: 6px; }
@@ -164,6 +184,10 @@ export default function App() {
   const [oddsError, setOddsError] = useState(null);
   const [quotaRemaining, setQuotaRemaining] = useState(null);
 
+  // Etat des stats d'equipes depuis football-data.org.
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+
   useEffect(() => {
     setSaved(ls.get("mpp:matches", []));
     const saved = ls.get("mpp:pos", null);
@@ -197,7 +221,7 @@ export default function App() {
     }
   };
 
-  // Pre-remplit le formulaire depuis un match de l'API.
+  // Pre-remplit le formulaire depuis un match de l'API et charge les stats.
   const selectMatch = (m) => {
     setForm((f) => ({
       ...f,
@@ -207,8 +231,41 @@ export default function App() {
       oN: String(m.oN),
       o2: String(m.o2),
     }));
+    setStats(null);
+    fetchStats(m.home, m.away);
     window.scrollTo({ top: 600, behavior: "smooth" });
   };
+
+  // Charge les stats d'equipes depuis football-data.org.
+  const fetchStats = async (home, away) => {
+    setLoadingStats(true);
+    try {
+      const res = await fetch(`/api/stats?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}`);
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error);
+      setStats(data);
+    } catch {
+      // Stats optionnelles : echec silencieux, la cle n'est peut-etre pas configuree.
+      setStats(null);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  // Genere les liens sources pour un match donne.
+  function sourceLinks(home, away) {
+    if (!home || !away) return [];
+    const q = `${home} ${away}`;
+    const qUrl = encodeURIComponent(q);
+    return [
+      { label: "L'Equipe", href: `https://www.lequipe.fr/recherche?q=${qUrl}` },
+      { label: "RMC Sport", href: `https://rmcsport.bfmtv.com/football/` },
+      { label: "BBC Sport", href: `https://www.bbc.com/sport/football` },
+      { label: "Goal.com", href: `https://www.goal.com/fr/recherche?q=${qUrl}` },
+      { label: "FBref", href: `https://fbref.com/en/comps/1/schedule/World-Cup-Scores-and-Fixtures` },
+      { label: "Sofascore", href: `https://www.sofascore.com/fr/` },
+    ];
+  }
 
   const verdict = computeVerdict(form, mode);
   const scores = topScores(form.xgA, form.xgB);
@@ -341,6 +398,77 @@ export default function App() {
             )}
           </div>
         </div>
+
+        {/* 01b : FICHE MATCH (stats + sources, visible si un match est charge) */}
+        {(form.a || form.b) && (
+          <div className="card">
+            <div className="sec-title"><span className="num">01b</span> Fiche match</div>
+
+            {/* Stats d'equipes */}
+            {loadingStats && <p className="mini" style={{ marginTop: 12 }}>Chargement des stats...</p>}
+            {stats && (
+              <div className="stats-grid">
+                {[stats.home, stats.away].map((team, ti) => (
+                  <div key={ti} className="stat-team">
+                    <div className="tname">{team.name}</div>
+                    {team.form.length > 0 && (
+                      <div className="form-dots">
+                        {team.form.map((f, i) => (
+                          <div key={i} className={`form-dot ${f.result}`}>{f.result}</div>
+                        ))}
+                      </div>
+                    )}
+                    {team.played !== null && (
+                      <div className="stat-line">
+                        <b>{team.points} pts</b> · {team.won}V {team.drawn}N {team.lost}D · {team.goalsFor} buts / {team.goalsAgainst} concedes
+                      </div>
+                    )}
+                    {team.played === null && team.form.length === 0 && (
+                      <p className="mini">Pas encore de donnees pour ce tournoi.</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            {!loadingStats && !stats && (
+              <p className="mini" style={{ marginTop: 10 }}>
+                Stats indisponibles. Ajouter FOOTBALL_DATA_API_KEY dans Vercel pour activer.
+              </p>
+            )}
+
+            {/* H2H */}
+            {stats?.h2h?.length > 0 && (
+              <div style={{ marginTop: 14 }}>
+                <label className="label">Confrontations directes dans ce tournoi</label>
+                {stats.h2h.map((m, i) => {
+                  const sc = m.score?.fullTime;
+                  return (
+                    <div key={i} className="srow" style={{ marginTop: 6, cursor: "default" }}>
+                      <div>
+                        <div className="m">{m.homeTeam.name} {sc ? `${sc.home}-${sc.away}` : "?"} {m.awayTeam.name}</div>
+                        <div className="p">{m.stage?.replace(/_/g, " ")} · {new Date(m.utcDate).toLocaleDateString("fr-FR")}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Sources rapides */}
+            <div className="divider" />
+            <label className="label">Sources rapides</label>
+            <p className="mini" style={{ marginTop: 0, marginBottom: 8 }}>
+              Ouvre ces liens pour la revue de presse avant d'ajuster le xG.
+            </p>
+            <div className="sources">
+              {sourceLinks(form.a, form.b).map((s) => (
+                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" className="src-link">
+                  {s.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 02 : ANALYSER UN MATCH */}
         <div className="card glow">
