@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { computeVerdict, topScores, estimateXg, pct } from "./engine/calcul.js";
+import { findMppMatch } from "./engine/teamMapping.js";
+import mppData from "../data/mpp-points.json";
 
 /* =========================================================================
    MPP COCKPIT — Coupe du Monde 2026
@@ -176,6 +178,7 @@ export default function App() {
 
   const blank = { a: "", b: "", o1: "", oN: "", o2: "", g1: "", gN: "", g2: "", xgA: "", xgB: "" };
   const [form, setForm] = useState(blank);
+  const [mppFilled, setMppFilled] = useState(false);
   const [saved, setSaved] = useState([]);
 
   // Etat des cotes en direct depuis The Odds API.
@@ -222,7 +225,10 @@ export default function App() {
   };
 
   // Pre-remplit le formulaire depuis un match de l'API et charge les stats.
+  // Les points MPP (g1/gN/g2) sont auto-remplis si le match figure dans mpp-points.json.
   const selectMatch = (m) => {
+    const mppMatch = findMppMatch(m.home, m.away, mppData.matchs);
+    setMppFilled(!!mppMatch);
     setForm((f) => ({
       ...f,
       a: m.home,
@@ -230,6 +236,9 @@ export default function App() {
       o1: String(m.o1),
       oN: String(m.oN),
       o2: String(m.o2),
+      g1: mppMatch ? String(mppMatch.points["1"]) : "",
+      gN: mppMatch ? String(mppMatch.points["N"]) : "",
+      g2: mppMatch ? String(mppMatch.points["2"]) : "",
     }));
     setStats(null);
     fetchStats(m.home, m.away);
@@ -301,6 +310,7 @@ export default function App() {
     const next = [entry, ...saved].slice(0, 60);
     setSaved(next);
     persist(next);
+    setMppFilled(false);
     setForm(blank);
   };
 
@@ -495,7 +505,14 @@ export default function App() {
           </div>
 
           <div className="divider" />
-          <label className="label">Points MPP par issue (1 / N / 2)</label>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 6 }}>
+            <label className="label" style={{ margin: 0 }}>Points MPP par issue (1 / N / 2)</label>
+            {mppFilled && (
+              <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: 1, textTransform: "uppercase", color: "var(--accent)", border: "1px solid var(--accent)", borderRadius: 999, padding: "2px 7px" }}>
+                MPP auto
+              </span>
+            )}
+          </div>
           <p className="mini" style={{ marginTop: 0, marginBottom: 8 }}>Les points affiches dans l'appli MPP avant le match.</p>
           <div className="row g3">
             <input className="input" inputMode="numeric" placeholder="46" value={form.g1} onChange={(e) => set("g1", e.target.value)} />
@@ -560,7 +577,7 @@ export default function App() {
 
               <div className="row g2" style={{ marginTop: 16 }}>
                 <button className="btn btn-accent" onClick={saveMatch}>Enregistrer ce match</button>
-                <button className="btn btn-ghost" onClick={() => setForm(blank)}>Reinitialiser</button>
+                <button className="btn btn-ghost" onClick={() => { setForm(blank); setMppFilled(false); }}>Reinitialiser</button>
               </div>
             </>
           )}

@@ -5,8 +5,8 @@ Ce fichier est relu au debut de chaque session pour reprendre le fil sans re-exp
 ## Etat du projet (mis a jour le 2026-05-30)
 
 Phase 1 complete. L'app est deployee et fonctionnelle sur mpp-cockpit.vercel.app.
-Phase en cours : collecte MobAI des points MPP (1 match sur 64 collecte).
-Prochaine etape immediate : reprendre la collecte MobAI des 63 matchs restants.
+Phase en cours : collecte MobAI TERMINEE. 72 matchs collectes (pas 64 comme estime : la CdM 2026 a 48 equipes, 12 groupes de 4, soit 72 matchs de poules).
+Prochaine etape immediate : Phase 2 — brancher data/mpp-points.json dans l'app (pre-remplissage auto des points g1/gN/g2).
 
 ## Ce qui est en place et fonctionne
 
@@ -36,8 +36,7 @@ Comportement : fetchs les matchs du jour depuis l'API Vercel, browse les sources
 
 **Donnees collectees via MobAI : data/mpp-points.json**
 
-1 match collecte sur 64 : Mexique vs Afrique du Sud, J.1, 11/06 21h00, points 49/125/148.
-63 matchs restants a collecter en session dediee.
+72 matchs collectes (J.1 a J.3, 11 juin au 28 juin 2026). Points MPP + pronos foule pour chaque match. Fichier : data/mpp-points.json.
 
 **Variables d'environnement Vercel configurees :**
 
