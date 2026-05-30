@@ -107,6 +107,7 @@ const CSS = `
 .edge-up { color: var(--accent); } .edge-dn { color: var(--red); }
 
 .reason { margin-top: 14px; font-size: 13px; line-height: 1.55; color: #c4d0c7; border-left: 2px solid var(--accent-dim); padding-left: 12px; }
+.ai-reason { margin-top: 14px; font-size: 13px; line-height: 1.55; color: #c4d0c7; border-left: 2px solid var(--blue); padding-left: 12px; }
 
 .scoregrid { display:grid; grid-template-columns: repeat(3,1fr); gap:8px; margin-top: 10px; }
 .scorecell { background:#0a100e; border:1px solid var(--line2); border-radius:10px; padding:10px; text-align:center; }
@@ -190,6 +191,10 @@ export default function App() {
   // Etat des stats d'equipes depuis football-data.org.
   const [stats, setStats] = useState(null);
   const [loadingStats, setLoadingStats] = useState(false);
+
+  // Etat de l'analyse IA (bouton "Analyser avec IA").
+  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [loadingAI, setLoadingAI] = useState(false);
 
   useEffect(() => {
     setSaved(ls.get("mpp:matches", []));
@@ -295,6 +300,31 @@ export default function App() {
     setForm((f) => ({ ...f, xgA: xa, xgB: xb }));
   };
 
+  const fetchAIAnalysis = async () => {
+    const ok = [form.o1, form.oN, form.o2].every((v) => parseFloat(v) > 1);
+    if (!ok || !form.a || !form.b) return;
+    setLoadingAI(true);
+    setAiAnalysis(null);
+    try {
+      const resp = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ home: form.a, away: form.b, o1: form.o1, oN: form.oN, o2: form.o2 }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        setAiAnalysis({ error: data.error || "Erreur inconnue." });
+      } else {
+        setAiAnalysis(data);
+        setForm((f) => ({ ...f, xgA: String(data.xgA), xgB: String(data.xgB) }));
+      }
+    } catch {
+      setAiAnalysis({ error: "Impossible de joindre /api/analyze." });
+    } finally {
+      setLoadingAI(false);
+    }
+  };
+
   const saveMatch = () => {
     if (!verdict) return;
     const v = verdict;
@@ -311,6 +341,7 @@ export default function App() {
     setSaved(next);
     persist(next);
     setMppFilled(false);
+    setAiAnalysis(null);
     setForm(blank);
   };
 
@@ -577,7 +608,7 @@ export default function App() {
 
               <div className="row g2" style={{ marginTop: 16 }}>
                 <button className="btn btn-accent" onClick={saveMatch}>Enregistrer ce match</button>
-                <button className="btn btn-ghost" onClick={() => { setForm(blank); setMppFilled(false); }}>Reinitialiser</button>
+                <button className="btn btn-ghost" onClick={() => { setForm(blank); setMppFilled(false); setAiAnalysis(null); }}>Reinitialiser</button>
               </div>
             </>
           )}
@@ -595,10 +626,27 @@ export default function App() {
               <label className="label">Buts att. {form.b || "Eq2"}</label>
               <input className="input" inputMode="decimal" placeholder="0.9" value={form.xgB} onChange={(e) => set("xgB", e.target.value)} />
             </div>
-            <div style={{ display: "flex", alignItems: "flex-end" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, justifyContent: "flex-end" }}>
               <button className="btn btn-ghost" onClick={runEstimateXg}>Estimer</button>
+              <button
+                className="btn btn-ghost"
+                onClick={fetchAIAnalysis}
+                disabled={loadingAI || !form.a || !form.b || !form.o1}
+                style={{ color: "var(--blue)", borderColor: "rgba(87,199,255,0.25)" }}
+              >
+                {loadingAI ? "..." : "IA"}
+              </button>
             </div>
           </div>
+
+          {aiAnalysis && (
+            <div className="ai-reason">
+              {aiAnalysis.error
+                ? <span style={{ color: "var(--red)" }}>{aiAnalysis.error}</span>
+                : aiAnalysis.reasoning
+              }
+            </div>
+          )}
 
           {scores && (
             <>
