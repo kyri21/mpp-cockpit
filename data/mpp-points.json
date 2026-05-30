@@ -1,0 +1,16 @@
+{
+  "source": "MobAI — lecture ecran MPP",
+  "collecte_le": "2026-05-30",
+  "note": "Collection en cours. Relancer /mpp-collect en session dediee pour completer les 64 matchs.",
+  "matchs": [
+    {
+      "journee": "J.1",
+      "date": "2026-06-11",
+      "heure": "21:00",
+      "domicile": "Mexique",
+      "exterieur": "Afrique du Sud",
+      "points": { "1": 49, "N": 125, "2": 148 },
+      "prono_foule": { "1": "82%", "N": "10%", "2": "8%" }
+    }
+  ]
+}
