@@ -2,82 +2,80 @@
 
 Ce fichier est relu au debut de chaque session pour reprendre le fil sans re-expliquer le contexte.
 
-## Etat du projet
+## Etat du projet (mis a jour le 2026-05-30)
 
-Phase : squelette cree, architecture decidee, aucune logique metier codee.
-Prochaine etape : installer les dependances, porter le moteur de calcul dans `src/engine/calcul.js`, connecter l'appel API dans `api/odds.js`, porter le cockpit dans `src/App.jsx`.
+Phase 1 complete. L'app est deployee et fonctionnelle sur mpp-cockpit.vercel.app.
+Phase en cours : collecte MobAI des points MPP (1 match sur 64 collecte).
+Prochaine etape immediate : reprendre la collecte MobAI des 63 matchs restants.
 
-## Decisions d'architecture et leur justification
+## Ce qui est en place et fonctionne
 
-**Langage : JavaScript (Node.js + React)**
-Raison : coherence avec le cockpit React deja prototype dans mpp-cockpit.jsx. Un seul langage, un seul package.json, pas de changement de contexte.
+**App deployee : mpp-cockpit.vercel.app**
 
-**Hebergement : Vercel**
-Raison : l'utilisateur veut acceder a l'outil depuis son telephone partout, pas seulement depuis chez lui. Vercel fournit une URL fixe, le deploiement se fait par git push, le plan gratuit suffit largement.
+Section 00 : cotes en direct via The Odds API (bouton Rafraichir, cache 5 min Vercel).
+Section 01 : position dans la ligue + suggestion de mode de risque.
+Section 01b : fiche match (stats football-data.org + liens sources L'Equipe / RMC / BBC / FBref / Sofascore). Apparait quand un match est charge.
+Section 02 : analyse du match (verdict, espérance, valeur vs MPP, score exact Poisson).
+Section 03 : matchs enregistres (localStorage, persistant entre sessions).
 
-**Backend : une seule fonction serverless Vercel (`api/odds.js`)**
-Raison : il faut proteger la cle The Odds API. Elle ne doit jamais etre exposee dans le frontend. La fonction serverless fait le relais entre le browser et l'API externe.
+**Moteur de calcul : src/engine/calcul.js**
 
-**Stockage : localStorage uniquement**
-Raison : 64 matchs sur un mois ne necessitent pas de base de donnees. Le cockpit original utilisait deja window.storage (equivalent localStorage). Pas d'infrastructure a maintenir.
+Fonctions pures exportees : vigRemove, computeVerdict, topScores, estimateXg, poisson, pct.
+Constante GAMMA : prudent = 1.7, equilibre = 1.0, agressif = 0.5.
 
-**Declenchement des cotes : bouton dans l'interface**
-Raison : les cotes bougent peu dans les 24-48h avant un match. Un fetch manuel suffit, c'est plus simple qu'un cron et ca consomme moins de requetes API (quota 500/mois, largement suffisant pour 64 matchs).
+**Fonctions serverless Vercel :**
 
-**Source de cotes : The Odds API**
-Raison : API propre, plan gratuit suffisant pour la CdM (500 requetes/mois vs 64 matchs max), cotes Pinnacle disponibles (reference sharp), documentation claire.
+api/odds.js : appelle The Odds API, priorite bookmakers sharp (Pinnacle), retourne les matchs avec o1/oN/o2.
+api/stats.js : appelle football-data.org, retourne forme + bilan + H2H pour un match.
 
-**Points MPP : saisie manuelle en phase 1, MobAI en phase 2**
-Raison : la saisie manuelle prend 10 secondes et ne necessite aucune infrastructure. MobAI sera ajoute quand le cockpit de base fonctionnera.
+**Commande /revue (Claude Code) :**
 
-## Ce que fait le moteur (ne pas changer sans discussion)
+Fichier : .claude/commands/revue.md
+Usage : taper /revue dans Claude Code le jour d'un match.
+Comportement : fetchs les matchs du jour depuis l'API Vercel, browse les sources presse (L'Equipe, RMC Sport, BBC Sport, Goal.com, Marca, FBref), produit un briefing structure avec xG suggere et ordre de priorite.
 
-Le moteur transforme des cotes de bookmaker en recommandation optimale pour le systeme de points MPP. Il ne predit pas les resultats : il trouve quelle issue maximise l'esperance de points compte tenu du mode de risque choisi.
+**Donnees collectees via MobAI : data/mpp-points.json**
 
-Les cotes du marche sont le signal central. Elles integrent deja tout ce que les professionnels savent (forme, blessures publiees, historique). L'ajustement manuel des buts attendus (xG) sert uniquement pour les informations de derniere minute pas encore dans le marche.
+1 match collecte sur 64 : Mexique vs Afrique du Sud, J.1, 11/06 21h00, points 49/125/148.
+63 matchs restants a collecter en session dediee.
+
+**Variables d'environnement Vercel configurees :**
+
+ODDS_API_KEY : cle The Odds API (plan gratuit 500 req/mois, largement suffisant).
+FOOTBALL_DATA_API_KEY : cle football-data.org (stats equipes, forme, H2H).
+
+## Decisions d'architecture prises (ne pas revenir dessus)
+
+Langage : JavaScript uniquement (Node.js + React + Vite). Coherent avec le cockpit prototype.
+Hebergement : Vercel. URL fixe, accessible depuis le telephone partout.
+Stockage : localStorage cote browser pour position et matchs. JSON local pour les points MPP collectes via MobAI.
+Declenchement des cotes : bouton dans l'app (manuel, controle).
+Revue de presse : faite par Claude Code en session (commande /revue), pas dans l'app.
+MobAI : utilise pour lire les points MPP sur le telephone (bridge connecte, fonctionne).
+Points MPP : saisie manuelle en fallback si MobAI non disponible (champ g1/gN/g2 dans section 02).
+
+## Repo GitHub
+
+github.com/kyri21/mpp-cockpit (branche main, deploiement automatique Vercel sur push).
 
 ## Roadmap par phases
 
-**Phase 1 : cockpit de base fonctionnel (priorite)**
-Installer les dependances Vite + React.
-Porter `src/engine/calcul.js` (fonctions pures : vigRemove, computeVerdict, topScores, poisson).
-Porter `src/App.jsx` depuis mpp-cockpit.jsx, en branchant les donnees sur de vraies cotes.
-Ecrire `api/odds.js` pour relayer The Odds API.
-Configurer la variable d'environnement ODDS_API_KEY.
-Deployer sur Vercel et tester depuis le telephone.
-
-**Phase 2 : integration MobAI pour les points MPP**
-Ecrire le script MobAI qui lit l'ecran du telephone et extrait les points 1/N/2.
-Exposer une route dans l'app ou un endpoint local pour recevoir ce JSON.
-Brancher l'interface sur ces donnees plutot que la saisie manuelle.
-
-**Phase 3 : ameliorations optionnelles**
-Notification push avant chaque match (Web Push API ou simple rappel calendrier).
-Historique des pronos avec suivi des resultats.
-Import du calendrier CdM 2026 pour pré-afficher les matchs du jour.
-
-## Ce qui reste a faire avant de commencer a coder
-
-Creer un compte sur the-odds-api.com et recuperer la cle API gratuite.
-Configurer le depot git et le projet Vercel.
-Executer `npm install` pour installer les dependances.
+Phase 1 (complete) : app deployee, moteur de calcul, API cotes, fiche match, commande /revue.
+Phase en cours : collecte complete des 63 matchs MPP restants via MobAI.
+Phase 2 : brancher data/mpp-points.json dans l'app (pre-remplissage auto des points g1/gN/g2 quand un match est charge depuis la section 00).
+Phase 3 : suivi des resultats (marquer l'issue reelle apres chaque match, bilan des recommandations).
+Phase 4 (optionnelle) : bouton "Analyse IA" dans l'app qui appelle Claude API pour une synthese sans ouvrir Claude Code.
 
 ## Sources d'information
 
-**Programmatiques (integrees a l'outil) :**
-The Odds API (the-odds-api.com) : cotes en temps reel, reference principale.
-football-data.org : calendrier des matchs, donnees d'equipes (plan gratuit disponible, utile pour importer les matchs de la CdM automatiquement en phase 3).
+Cotes : The Odds API (the-odds-api.com), plan gratuit.
+Stats equipes : football-data.org, plan gratuit.
+Points MPP : collecte MobAI via lecture ecran telephone, fichier data/mpp-points.json.
+Revue de presse : lequipe.fr, rmcsport.bfmtv.com, bbc.com/sport/football, goal.com, marca.com, fbref.com, sofascore.com.
 
-**Editoriales pour le contexte (lecture humaine avant d'ajuster le xG) :**
-lequipe.fr : compositions officielles, blessures, actualite des equipes. Seule source vraiment utile pour le module de score exact.
-rmcsport.bfmtv.com : analyses pre-match, avis des consultants (anciens joueurs).
-sofascore.com ou flashscore.com : statistiques recentes de chaque equipe, forme sur les derniers matchs.
+## MobAI
 
-**Stats avancees (pour calibrer les buts attendus) :**
-fbref.com : xG par equipe et par match en competition internationale, profondeur d'analyse elevee.
-understat.com : xG par equipe et par joueur, interface simple.
-
-**Pronostics de professionnels (lecture humaine, aucune integration automatique) :**
-Les sites de paris (Winamax, Betclic, Unibet) publient des pronostics editoriaux gratuits. Utile pour croiser avec le moteur, pas pour remplacer le calcul.
-
-**Important :** ces sources servent uniquement a l'utilisateur pour enrichir son jugement avant d'ajuster manuellement les buts attendus. Le moteur lui-meme n'a besoin que des cotes (The Odds API) et des points MPP.
+Device ID : 00008110-000E44E814DB801E (iPhone de Demis, iOS 26.5).
+Bridge : demarrer avec mcp__mobai__start_bridge avant toute interaction.
+Pour naviguer dans MPP : swipe depuis le bord gauche pour revenir (iOS, pas de bouton back).
+L'UI tree expose les points MPP directement dans le texte de l'element match (format : "domicile, J.x, date, heure, pts1, ptsN, pts2, exterieur").

@@ -69,10 +69,25 @@ Sources editoriales pour le contexte (lecture humaine, pas automatisee) : voir `
 ## Commandes
 
 Installation : `npm install`
-Developpement local : `npm run dev` puis ouvrir localhost:5173
+Developpement local : `npm run dev` puis ouvrir localhost:3000
 Build : `npm run build`
-Deploy : `git push` sur la branche principale (Vercel deploie automatiquement)
+Deploy : `git push` sur main (Vercel deploie automatiquement)
+Revue de presse des matchs du jour : `/revue` dans Claude Code
 Variables d'environnement locales : copier `.env.local.example` en `.env.local` et renseigner `ODDS_API_KEY`
+
+## Etat de deploiement (au 2026-05-30)
+
+App en production : mpp-cockpit.vercel.app
+Repo : github.com/kyri21/mpp-cockpit
+Variables Vercel configurees : ODDS_API_KEY, FOOTBALL_DATA_API_KEY
+
+## MobAI
+
+Device ID : 00008110-000E44E814DB801E (iPhone Demis, iOS 26.5)
+Demarrer le bridge avant toute interaction : mcp__mobai__start_bridge
+Navigation arriere sur iOS : swipe depuis le bord gauche (pas de bouton back).
+Points MPP dans l'UI tree : element match contient "domicile, journee, date, heure, pts1, ptsN, pts2, exterieur".
+Donnees collectees : data/mpp-points.json (1 match sur 64 au 2026-05-30).
 
 ## Conventions
 
