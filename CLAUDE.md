@@ -49,6 +49,8 @@ Integration dans yorgios-global : rejete, aucune dependance souhaitee.
 
 Base de donnees : inutile pour 64 matchs sur un mois, localStorage suffit.
 
+Lire le PDF L'Equipe dans l'app : rejete (tranche le 2026-05-31, ne pas re-tenter). Le PDF est image only (aucune couche texte, `pdftotext` rend ~33 caracteres), 59 Mo / 33 pages, donc au dela du plafond de body d'une fonction serverless Vercel (~4,5 Mo) et de la limite PDF d'Anthropic (32 Mo). Une option captures d'ecran a ete prototypee puis retiree (friction inutile cote utilisateur). L'Equipe reste donc une lecture de session sur l'ordi (`/revue`, dossier `presse/`) ; RMC et la recherche web couvrent la couche experte sur iPhone.
+
 ## Le moteur de calcul (a respecter fidelement)
 
 Toutes les fonctions sont pures, isolees dans `src/engine/calcul.js`, sans dependance a React.
@@ -95,7 +97,7 @@ Elo des selections : `data/elo-ratings.json`, precalcule hors ligne depuis l'his
 
 Contexte qualitatif : API Anthropic avec recherche web (`api/analyze.js`). Blessures, suspensions, turnover, enjeu, meteo. Renvoie des multiplicateurs et des sources cliquables. La recherche consulte aussi les avis d'experts (anciens pros, journalistes) de RMC Sport pari sportif (rmcsport.bfmtv.com/pari-sportif), retenus comme contexte et non comme pronostic.
 
-Presse quotidienne (input de session, pas runtime) : le PDF L'Equipe recu chaque jour par WhatsApp se depose dans `presse/lequipe-AAAA-MM-JJ.pdf` (voir `presse/README.md`). Contenu payant, gitignore, jamais commit. L'app deployee ne lit pas ces fichiers : je les lis en session (commande `/revue`) pour enrichir le contexte par match. Comme RMC, c'est du contexte qualitatif qui ajuste les buts attendus, pas une source de fusion separee (principe anti-doublon).
+Presse quotidienne (input de session, pas runtime) : le PDF L'Equipe recu chaque jour par WhatsApp se depose dans `presse/lequipe-AAAA-MM-JJ.pdf` (voir `presse/README.md`). Contenu payant, gitignore, jamais commit. Le PDF est image only (pas de couche texte) et trop lourd pour l'API : il n'est donc jamais lu par l'app, seulement en session sur l'ordi (commande `/revue`) pour enrichir le contexte par match (voir "Decisions rejetees"). Comme RMC, c'est du contexte qualitatif qui ajuste les buts attendus, pas une source de fusion separee (principe anti-doublon).
 
 Points MPP : pas d'API publique. Saisie manuelle dans l'interface, ou auto-remplissage depuis `data/mpp-points.json` (collecte MobAI) quand le match y figure. Le fichier contient aussi `prono_foule` (repartition reelle de la foule), utilise par la couche valeur.
 

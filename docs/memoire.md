@@ -27,6 +27,16 @@ Tout est commite et pousse sur main.
 Ne pas faire (decisions tranchees, voir "Principe anti-doublon" dans CLAUDE.md) :
 ajouter une source "forme live" (redondante avec l'Elo), ou faire du contexte IA une source de fusion separee (double comptage de la force).
 
+## Session 2026-05-31 (suite) : sources qualitatives expertes
+
+Deux sources expertes ajoutees a la couche qualitative (elles ajustent les buts attendus via `api/analyze.js`, ce ne sont PAS des sources de fusion : anti-doublon).
+1. RMC Sport pari sportif (rmcsport.bfmtv.com/pari-sportif) : avis d'anciens pros et journalistes, cable dans le prompt de `api/analyze.js`. Retenu comme contexte concret, jamais comme pronostic. Couvre le quotidien sur iPhone (l'app est accessible depuis le tel).
+2. PDF L'Equipe quotidien (recu par WhatsApp) : depose dans `presse/lequipe-AAAA-MM-JJ.pdf` (gitignore, contenu payant jamais commit). Lu en SESSION sur l'ordi via `/revue`, pour les matchs decisifs.
+
+Tranche, ne pas re-tenter : NE PAS lire le PDF L'Equipe dans l'app. Le PDF est image only (0 couche texte, `pdftotext` rend ~33 caracteres), 59 Mo / 33 pages, donc au dela du plafond body Vercel (~4,5 Mo) et de la limite PDF Anthropic (32 Mo). L'option captures d'ecran a ete prototypee puis retiree (friction inutile). L'Equipe reste donc une lecture de session ; RMC + web couvrent l'iPhone.
+
+Objectif "le plus possible sur iPhone" : atteint. Tout le cockpit et la couche experts RMC tournent sur le tel. Seule la lecture approfondie du PDF L'Equipe reste sur l'ordi (matchs decisifs).
+
 ## Donnees collectees via MobAI : data/mpp-points.json
 
 72 matchs (J.1 a J.3, 11 au 28 juin 2026), points MPP + `prono_foule` par match. Auto-remplissage dans l'app quand le match est charge.
@@ -45,4 +55,4 @@ UI tree : points MPP dans le texte de l'element match ("domicile, J.x, date, heu
 
 ## Sources de revue de presse (lecture humaine, commande /revue)
 
-lequipe.fr, rmcsport.bfmtv.com, bbc.com/sport/football, goal.com, marca.com, fbref.com, sofascore.com.
+PDF L'Equipe du jour si present dans `presse/lequipe-AAAA-MM-JJ.pdf` (voir `presse/README.md`), puis web : lequipe.fr, rmcsport.bfmtv.com, bbc.com/sport/football, goal.com, marca.com, fbref.com, sofascore.com.
