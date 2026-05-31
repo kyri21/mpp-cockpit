@@ -93,7 +93,9 @@ Cotes : The Odds API (the-odds-api.com), plan gratuit 500 requetes par mois. Cot
 
 Elo des selections : `data/elo-ratings.json`, precalcule hors ligne depuis l'historique des matchs internationaux (dataset martj42/international_results, CC0, refetch dans `scripts/buildElo.js` si besoin). Aucune cle, embarque dans le bundle.
 
-Contexte qualitatif : API Anthropic avec recherche web (`api/analyze.js`). Blessures, suspensions, turnover, enjeu, meteo. Renvoie des multiplicateurs et des sources cliquables.
+Contexte qualitatif : API Anthropic avec recherche web (`api/analyze.js`). Blessures, suspensions, turnover, enjeu, meteo. Renvoie des multiplicateurs et des sources cliquables. La recherche consulte aussi les avis d'experts (anciens pros, journalistes) de RMC Sport pari sportif (rmcsport.bfmtv.com/pari-sportif), retenus comme contexte et non comme pronostic.
+
+Presse quotidienne (input de session, pas runtime) : le PDF L'Equipe recu chaque jour par WhatsApp se depose dans `presse/lequipe-AAAA-MM-JJ.pdf` (voir `presse/README.md`). Contenu payant, gitignore, jamais commit. L'app deployee ne lit pas ces fichiers : je les lis en session (commande `/revue`) pour enrichir le contexte par match. Comme RMC, c'est du contexte qualitatif qui ajuste les buts attendus, pas une source de fusion separee (principe anti-doublon).
 
 Points MPP : pas d'API publique. Saisie manuelle dans l'interface, ou auto-remplissage depuis `data/mpp-points.json` (collecte MobAI) quand le match y figure. Le fichier contient aussi `prono_foule` (repartition reelle de la foule), utilise par la couche valeur.
 
@@ -146,3 +148,47 @@ La cle API The Odds API ne doit jamais apparaitre dans le code commit, uniquemen
 ## Memoire du projet
 
 Relire `docs/memoire.md` au debut de chaque session pour reprendre le fil.
+
+<!-- gitnexus:start -->
+# GitNexus — Code Intelligence
+
+This project is indexed by GitNexus as **mpp-cockpit** (472 symbols, 567 relationships, 6 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+
+> If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
+
+## Always Do
+
+- **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `gitnexus_impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
+- **MUST run `gitnexus_detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows.
+- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
+- When exploring unfamiliar code, use `gitnexus_query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
+- When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `gitnexus_context({name: "symbolName"})`.
+
+## Never Do
+
+- NEVER edit a function, class, or method without first running `gitnexus_impact` on it.
+- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
+- NEVER rename symbols with find-and-replace — use `gitnexus_rename` which understands the call graph.
+- NEVER commit changes without running `gitnexus_detect_changes()` to check affected scope.
+
+## Resources
+
+| Resource | Use for |
+|----------|---------|
+| `gitnexus://repo/mpp-cockpit/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/mpp-cockpit/clusters` | All functional areas |
+| `gitnexus://repo/mpp-cockpit/processes` | All execution flows |
+| `gitnexus://repo/mpp-cockpit/process/{name}` | Step-by-step execution trace |
+
+## CLI
+
+| Task | Read this skill file |
+|------|---------------------|
+| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
+| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
+| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
+| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
+| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
+
+<!-- gitnexus:end -->

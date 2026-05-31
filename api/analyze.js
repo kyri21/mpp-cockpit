@@ -31,6 +31,8 @@ export default async function handler(req, res) {
   const prompt = `Nous sommes le ${today}, Coupe du Monde 2026. Match : ${home} contre ${away}.
 Cherche sur le web le contexte recent de ces deux selections : blessures et suspensions de joueurs cles, joueurs menages, etat de forme tres recent, enjeu du match (equipe deja qualifiee qui fait tourner, match decisif), meteo extreme.
 
+Consulte aussi les avis d'experts sur ce match, notamment ceux des anciens pros et journalistes de RMC Sport pari sportif (rmcsport.bfmtv.com/pari-sportif). Ces avis sont des opinions, pas des faits : retiens seulement les elements concrets et verifiables (compositions probables, etat de forme, dynamique), pas le pronostic brut, et ne les laisse pas dominer le contexte factuel.
+
 Tu ne predis pas le resultat. Tu traduis ce contexte en deux multiplicateurs sur les buts attendus de chaque equipe :
 - 1.0 = rien de notable.
 - en dessous de 1.0 = l'equipe devrait marquer moins que sa norme (absences offensives, turnover, sans enjeu).

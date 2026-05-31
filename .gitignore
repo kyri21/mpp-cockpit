@@ -7,3 +7,8 @@ dist/
 
 # Dataset brut (3.7 Mo), refetch via scripts/buildElo.js si besoin. Seul data/elo-ratings.json est embarque.
 data/intl-results.csv
+
+# Presse quotidienne L'Equipe (contenu payant) : jamais commit, jamais pousse sur GitHub.
+# Seul presse/README.md (la convention) est suivi.
+presse/*.pdf
+presse/*.PDF
