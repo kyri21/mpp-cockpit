@@ -127,6 +127,13 @@ function normalizeName(s) {
     .replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
 }
 
+// Pays hotes CdM 2026 : seul un hote jouant a domicile recoit l'avantage du terrain.
+export const HOST_ELO_ADV = 80;
+const HOST_NATIONS = new Set(["united states", "usa", "canada", "mexico"]);
+export function isHostNation(name) {
+  return HOST_NATIONS.has(normalizeName(name));
+}
+
 // Alias noms cotes/MPP -> noms du dataset Elo (anglais).
 const ELO_ALIASES = {
   "usa": "united states", "korea republic": "south korea",

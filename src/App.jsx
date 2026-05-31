@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import { computeVerdict, topScores, estimateXg, pct, forceModel, fuseProb, vigRemove, poissonOutcome } from "./engine/calcul.js";
+import { computeVerdict, topScores, estimateXg, pct, forceModel, fuseProb, vigRemove, poissonOutcome, isHostNation, HOST_ELO_ADV } from "./engine/calcul.js";
 import { findMppMatch } from "./engine/teamMapping.js";
 import mppData from "../data/mpp-points.json";
 import eloData from "../data/elo-ratings.json";
 
 const ELO = eloData.ratings;
-// Poids des sources dans la fusion consensus.
-const WEIGHTS = { marche: 0.6, force: 0.4 };
+// Poids des sources dans la fusion consensus. Le marche domine car c'est le
+// meilleur estimateur unique ; le modele de force corrige et comble les manques.
+const WEIGHTS = { marche: 0.65, force: 0.35 };
 
 /* =========================================================================
    MPP COCKPIT — Coupe du Monde 2026
@@ -171,6 +172,21 @@ const CSS = `
 .est-srow b { color: var(--ink); font-weight:500; }
 .est-note { font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--amber); margin-top:12px; line-height:1.5; }
 
+/* suivi resultats */
+.bilan { background: rgba(212,255,63,0.05); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:14px; }
+.bilan-grid { display:grid; grid-template-columns: repeat(4,1fr); gap:10px; margin-top:10px; }
+.bilan-cell { text-align:center; }
+.bilan-cell .bv { font-family:'Anton',sans-serif; font-size:24px; line-height:1; }
+.bilan-cell .bl { font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); margin-top:4px; }
+.bilan-cell .bv.good { color: var(--accent); } .bilan-cell .bv.bad { color: var(--red); }
+.res-row { display:flex; gap:6px; align-items:center; margin-top:8px; }
+.res-lbl { font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); margin-right:2px; }
+.res-btn { font-family:'JetBrains Mono',monospace; font-size:11px; padding:4px 9px; border-radius:7px; border:1px solid var(--line2); background:#0a100e; color:var(--muted); cursor:pointer; }
+.res-btn:hover { border-color: var(--accent-dim); color: var(--ink); }
+.res-btn.on { border-color: var(--accent); color: var(--accent); background: rgba(212,255,63,0.08); }
+.res-verdict { font-family:'JetBrains Mono',monospace; font-size:11px; margin-top:6px; }
+.res-verdict.win { color: var(--accent); } .res-verdict.loss { color: var(--red); }
+
 .foot { color: var(--muted); font-size: 11.5px; line-height:1.6; margin-top: 26px; font-family:'JetBrains Mono',monospace; }
 .divider { height:1px; background: var(--line2); margin: 18px 0; }
 .mini { font-size: 11px; color: var(--muted); margin-top: 6px; }
@@ -311,7 +327,9 @@ export default function App() {
   // Estimation 1/N/2 : compilation des sources puis fusion consensus.
   const oddsOk = [form.o1, form.oN, form.o2].every((v) => parseFloat(v) > 1);
   const market = oddsOk ? vigRemove(parseFloat(form.o1), parseFloat(form.oN), parseFloat(form.o2)) : null;
-  const force = form.a && form.b ? forceModel(form.a, form.b, ELO) : null;
+  // Avantage du terrain seulement si l'equipe domicile est un pays hote.
+  const homeAdv = isHostNation(form.a) ? HOST_ELO_ADV : 0;
+  const force = form.a && form.b ? forceModel(form.a, form.b, ELO, { homeAdvantage: homeAdv }) : null;
 
   // Le contexte IA ajuste les buts attendus du modele de force (pas de double comptage).
   const ctxOk = context && !context.error && force;
@@ -375,6 +393,12 @@ export default function App() {
       pickEv: v.ev[v.recIdx].toFixed(1),
       pickP: pct(v.p[v.recIdx]),
       diff: v.recIdx !== v.crowdIdx,
+      // Instantane pour le suivi des resultats (le modele peut evoluer ensuite).
+      recIdx: v.recIdx,
+      crowdIdx: v.crowdIdx,
+      estP: v.p,
+      points: v.G,
+      result: null,
       form: { ...form },
     };
     const next = [entry, ...saved].slice(0, 60);
@@ -387,6 +411,30 @@ export default function App() {
 
   const loadMatch = (e) => { setForm(e.form); window.scrollTo({ top: 600, behavior: "smooth" }); };
   const delMatch = (id) => { const n = saved.filter((s) => s.id !== id); setSaved(n); persist(n); };
+
+  // Enregistre l'issue reelle d'un match (0=1, 1=N, 2=2), ou l'efface (null).
+  const setResult = (id, outcome) => {
+    const n = saved.map((s) => (s.id === id ? { ...s, result: s.result === outcome ? null : outcome } : s));
+    setSaved(n); persist(n);
+  };
+
+  // Bilan sur les matchs dont l'issue reelle est connue.
+  const resolved = saved.filter((s) => s.result != null && s.recIdx != null);
+  const bilan = resolved.length === 0 ? null : (() => {
+    let hits = 0, myPts = 0, crowdPts = 0, brier = 0;
+    for (const s of resolved) {
+      if (s.recIdx === s.result) { hits++; myPts += s.points[s.recIdx]; }
+      if (s.crowdIdx === s.result) crowdPts += s.points[s.crowdIdx];
+      if (Array.isArray(s.estP)) {
+        for (let i = 0; i < 3; i++) brier += Math.pow(s.estP[i] - (i === s.result ? 1 : 0), 2);
+      }
+    }
+    return {
+      n: resolved.length, hits, myPts, crowdPts,
+      hitRate: hits / resolved.length,
+      brier: brier / resolved.length,
+    };
+  })();
 
   const modeCopy = {
     prudent: "Tu colles aux favoris. Variance basse. A utiliser quand tu es en tete et qu'il reste peu de matchs.",
@@ -607,6 +655,7 @@ export default function App() {
             {force && (
               <p className="mini" style={{ marginTop: 10 }}>
                 Force Elo : {force.elo[0]} vs {force.elo[1]} (buts attendus {force.lambda[0].toFixed(2)} - {force.lambda[1].toFixed(2)}).
+                {homeAdv > 0 && ` Avantage hote applique (+${homeAdv} Elo).`}
                 {!market && " Cotes pas encore chargees : estimation basee sur le seul modele de force."}
               </p>
             )}
@@ -806,20 +855,71 @@ export default function App() {
           )}
         </div>
 
-        {/* 03 : MATCHS ENREGISTRES */}
+        {/* 03 : MATCHS ENREGISTRES + SUIVI DES RESULTATS */}
         <div className="card">
           <div className="sec-title"><span className="num">03</span> Mes matchs enregistres</div>
+
+          {bilan && (
+            <div className="bilan">
+              <div className="sec-title" style={{ fontSize: 14 }}>Bilan sur {bilan.n} match{bilan.n > 1 ? "s" : ""} joue{bilan.n > 1 ? "s" : ""}</div>
+              <div className="bilan-grid">
+                <div className="bilan-cell">
+                  <div className="bv">{(bilan.hitRate * 100).toFixed(0)}%</div>
+                  <div className="bl">pronos gagnes ({bilan.hits}/{bilan.n})</div>
+                </div>
+                <div className="bilan-cell">
+                  <div className="bv">{bilan.myPts}</div>
+                  <div className="bl">points pris</div>
+                </div>
+                <div className="bilan-cell">
+                  <div className={"bv " + (bilan.myPts >= bilan.crowdPts ? "good" : "bad")}>{bilan.myPts - bilan.crowdPts >= 0 ? "+" : ""}{bilan.myPts - bilan.crowdPts}</div>
+                  <div className="bl">vs suivre la foule ({bilan.crowdPts})</div>
+                </div>
+                <div className="bilan-cell">
+                  <div className="bv">{bilan.brier.toFixed(3)}</div>
+                  <div className="bl">calibration (Brier, bas = bon)</div>
+                </div>
+              </div>
+              <p className="mini" style={{ marginTop: 10 }}>
+                Le delta vs foule dit si tes choix ont rapporte plus que le reflexe de suivre le favori du peloton.
+                Le Brier mesure si l'estimation consensus etait juste (0 = parfait, 0.667 = au hasard).
+              </p>
+            </div>
+          )}
+
           {saved.length === 0 && <p className="mini" style={{ marginTop: 12 }}>Rien encore. Enregistre tes analyses pour suivre tes choix sur le tournoi.</p>}
           <div className="saved">
-            {saved.map((s) => (
-              <div key={s.id} className="srow">
-                <div onClick={() => loadMatch(s)} style={{ cursor: "pointer", flex: 1 }}>
-                  <div className="m">{s.label}</div>
-                  <div className="p">{s.pickName} · {s.pickEv} pts · {s.pickP}{s.diff ? " · differenciant" : ""}</div>
+            {saved.map((s) => {
+              const names = [s.form?.a || "1", "Nul", s.form?.b || "2"];
+              const hasRec = s.recIdx != null;
+              const won = hasRec && s.result != null && s.recIdx === s.result;
+              return (
+                <div key={s.id} className="srow" style={{ flexDirection: "column", alignItems: "stretch", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                    <div onClick={() => loadMatch(s)} style={{ cursor: "pointer", flex: 1 }}>
+                      <div className="m">{s.label}</div>
+                      <div className="p">{s.pickName} · {s.pickEv} pts · {s.pickP}{s.diff ? " · differenciant" : ""}</div>
+                    </div>
+                    <button className="del" onClick={() => delMatch(s.id)} title="Supprimer">×</button>
+                  </div>
+                  {hasRec && (
+                    <div className="res-row">
+                      <span className="res-lbl">Issue reelle</span>
+                      {names.map((nm, i) => (
+                        <button key={i} className={"res-btn" + (s.result === i ? " on" : "")} onClick={() => setResult(s.id, i)}>
+                          {nm}
+                        </button>
+                      ))}
+                      {s.result != null && (
+                        <span className={"res-verdict " + (won ? "win" : "loss")} style={{ marginLeft: 6 }}>
+                          {won ? `gagne, +${s.points[s.recIdx]} pts` : "perdu"}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <button className="del" onClick={() => delMatch(s.id)} title="Supprimer">×</button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
