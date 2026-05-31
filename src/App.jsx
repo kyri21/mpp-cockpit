@@ -1,7 +1,12 @@
 import { useState, useEffect } from "react";
-import { computeVerdict, topScores, estimateXg, pct } from "./engine/calcul.js";
+import { computeVerdict, topScores, estimateXg, pct, forceModel, fuseProb, vigRemove, poissonOutcome } from "./engine/calcul.js";
 import { findMppMatch } from "./engine/teamMapping.js";
 import mppData from "../data/mpp-points.json";
+import eloData from "../data/elo-ratings.json";
+
+const ELO = eloData.ratings;
+// Poids des sources dans la fusion consensus.
+const WEIGHTS = { marche: 0.6, force: 0.4 };
 
 /* =========================================================================
    MPP COCKPIT — Coupe du Monde 2026
@@ -151,6 +156,21 @@ const CSS = `
   text-decoration:none; transition: border-color .15s, color .15s; }
 .src-link:hover { border-color:var(--accent-dim); color:var(--ink); }
 
+/* estimation */
+.est-head { display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:14px; }
+.est-cell { background:#0a100e; border:1px solid var(--line2); border-radius:10px; padding:14px 10px; text-align:center; }
+.est-cell.top { border-color: var(--accent); background: rgba(212,255,63,0.06); }
+.est-cell .pn { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); }
+.est-cell .pv { font-family:'Anton',sans-serif; font-size:30px; line-height:1; margin-top:4px; }
+.est-cell.top .pv { color: var(--accent); }
+.est-table { margin-top:14px; }
+.est-srow { display:grid; grid-template-columns: 1fr auto auto auto; gap:10px; align-items:center;
+  font-family:'JetBrains Mono',monospace; font-size:12px; padding:7px 0; border-top:1px solid var(--line2); }
+.est-srow .sname { color: var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+.est-srow.cons .sname { color: var(--accent); }
+.est-srow b { color: var(--ink); font-weight:500; }
+.est-note { font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--amber); margin-top:12px; line-height:1.5; }
+
 .foot { color: var(--muted); font-size: 11.5px; line-height:1.6; margin-top: 26px; font-family:'JetBrains Mono',monospace; }
 .divider { height:1px; background: var(--line2); margin: 18px 0; }
 .mini { font-size: 11px; color: var(--muted); margin-top: 6px; }
@@ -177,7 +197,7 @@ export default function App() {
   const [mode, setMode] = useState("equilibre");
   const [pos, setPos] = useState({ rank: "", players: "", left: "" });
 
-  const blank = { a: "", b: "", o1: "", oN: "", o2: "", g1: "", gN: "", g2: "", xgA: "", xgB: "" };
+  const blank = { a: "", b: "", o1: "", oN: "", o2: "", g1: "", gN: "", g2: "", c1: "", cN: "", c2: "", xgA: "", xgB: "" };
   const [form, setForm] = useState(blank);
   const [mppFilled, setMppFilled] = useState(false);
   const [saved, setSaved] = useState([]);
@@ -192,9 +212,9 @@ export default function App() {
   const [stats, setStats] = useState(null);
   const [loadingStats, setLoadingStats] = useState(false);
 
-  // Etat de l'analyse IA (bouton "Analyser avec IA").
-  const [aiAnalysis, setAiAnalysis] = useState(null);
-  const [loadingAI, setLoadingAI] = useState(false);
+  // Etat du contexte qualitatif IA (multiplicateurs sur les buts attendus).
+  const [context, setContext] = useState(null);
+  const [loadingContext, setLoadingContext] = useState(false);
 
   useEffect(() => {
     setSaved(ls.get("mpp:matches", []));
@@ -234,6 +254,9 @@ export default function App() {
   const selectMatch = (m) => {
     const mppMatch = findMppMatch(m.home, m.away, mppData.matchs);
     setMppFilled(!!mppMatch);
+    // prono_foule : valeurs type "82%" converties en nombre ("82").
+    const pf = mppMatch?.prono_foule || null;
+    const pct2num = (s) => (s == null ? "" : String(parseFloat(s)));
     setForm((f) => ({
       ...f,
       a: m.home,
@@ -244,8 +267,12 @@ export default function App() {
       g1: mppMatch ? String(mppMatch.points["1"]) : "",
       gN: mppMatch ? String(mppMatch.points["N"]) : "",
       g2: mppMatch ? String(mppMatch.points["2"]) : "",
+      c1: pf ? pct2num(pf["1"]) : "",
+      cN: pf ? pct2num(pf["N"]) : "",
+      c2: pf ? pct2num(pf["2"]) : "",
     }));
     setStats(null);
+    setContext(null);
     fetchStats(m.home, m.away);
     window.scrollTo({ top: 600, behavior: "smooth" });
   };
@@ -281,7 +308,25 @@ export default function App() {
     ];
   }
 
-  const verdict = computeVerdict(form, mode);
+  // Estimation 1/N/2 : compilation des sources puis fusion consensus.
+  const oddsOk = [form.o1, form.oN, form.o2].every((v) => parseFloat(v) > 1);
+  const market = oddsOk ? vigRemove(parseFloat(form.o1), parseFloat(form.oN), parseFloat(form.o2)) : null;
+  const force = form.a && form.b ? forceModel(form.a, form.b, ELO) : null;
+
+  // Le contexte IA ajuste les buts attendus du modele de force (pas de double comptage).
+  const ctxOk = context && !context.error && force;
+  const forceP = ctxOk
+    ? poissonOutcome(force.lambda[0] * context.multHome, force.lambda[1] * context.multAway)
+    : force?.p;
+  const forceLabel = ctxOk ? "Force + contexte" : "Force Elo";
+
+  const estSources = [
+    market && { key: "marche", label: "Marche", p: market, weight: WEIGHTS.marche },
+    force && { key: "force", label: forceLabel, p: forceP, weight: WEIGHTS.force },
+  ].filter(Boolean);
+  const consensus = fuseProb(estSources);
+
+  const verdict = computeVerdict(form, mode, consensus?.p);
   const scores = topScores(form.xgA, form.xgB);
 
   const rank = parseInt(pos.rank), players = parseInt(pos.players), left = parseInt(pos.left);
@@ -300,28 +345,23 @@ export default function App() {
     setForm((f) => ({ ...f, xgA: xa, xgB: xb }));
   };
 
-  const fetchAIAnalysis = async () => {
-    const ok = [form.o1, form.oN, form.o2].every((v) => parseFloat(v) > 1);
-    if (!ok || !form.a || !form.b) return;
-    setLoadingAI(true);
-    setAiAnalysis(null);
+  // Cherche le contexte qualitatif (blessures, turnover, enjeu) via l'IA.
+  const fetchContext = async () => {
+    if (!form.a || !form.b) return;
+    setLoadingContext(true);
+    setContext(null);
     try {
       const resp = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ home: form.a, away: form.b, o1: form.o1, oN: form.oN, o2: form.o2 }),
+        body: JSON.stringify({ home: form.a, away: form.b }),
       });
       const data = await resp.json();
-      if (!resp.ok) {
-        setAiAnalysis({ error: data.error || "Erreur inconnue." });
-      } else {
-        setAiAnalysis(data);
-        setForm((f) => ({ ...f, xgA: String(data.xgA), xgB: String(data.xgB) }));
-      }
+      setContext(resp.ok ? data : { error: data.error || "Erreur inconnue." });
     } catch {
-      setAiAnalysis({ error: "Impossible de joindre /api/analyze." });
+      setContext({ error: "Impossible de joindre /api/analyze." });
     } finally {
-      setLoadingAI(false);
+      setLoadingContext(false);
     }
   };
 
@@ -341,7 +381,7 @@ export default function App() {
     setSaved(next);
     persist(next);
     setMppFilled(false);
-    setAiAnalysis(null);
+    setContext(null);
     setForm(blank);
   };
 
@@ -511,6 +551,99 @@ export default function App() {
           </div>
         )}
 
+        {/* E : ESTIMATION 1/N/2 (compilation des sources) */}
+        {(market || force) && (
+          <div className="card glow">
+            <div className="sec-title"><span className="num">E</span> Estimation 1 / N / 2</div>
+            <p className="mini" style={{ marginTop: 6 }}>
+              Compilation de toutes les sources disponibles en une probabilite consensus. Plus une source diverge, plus l'info est interessante.
+            </p>
+
+            {consensus && (() => {
+              const names = [form.a || "Eq1", "Nul", form.b || "Eq2"];
+              const top = consensus.p.indexOf(Math.max(...consensus.p));
+              return (
+                <div className="est-head">
+                  {consensus.p.map((pi, i) => (
+                    <div key={i} className={"est-cell" + (i === top ? " top" : "")}>
+                      <div className="pn">{names[i]}</div>
+                      <div className="pv">{(pi * 100).toFixed(0)}%</div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+
+            <div className="est-table">
+              {estSources.map((s) => (
+                <div key={s.key} className="est-srow">
+                  <span className="sname">{s.label}</span>
+                  <b>{pct(s.p[0])}</b><b>{pct(s.p[1])}</b><b>{pct(s.p[2])}</b>
+                </div>
+              ))}
+              {consensus && (
+                <div className="est-srow cons">
+                  <span className="sname">Consensus (poids {estSources.map((s) => s.weight).join("/")})</span>
+                  <b>{pct(consensus.p[0])}</b><b>{pct(consensus.p[1])}</b><b>{pct(consensus.p[2])}</b>
+                </div>
+              )}
+            </div>
+
+            {market && force && (() => {
+              const gap = Math.max(...market.map((mp, i) => Math.abs(mp - forceP[i])));
+              const gi = market.map((mp, i) => Math.abs(mp - forceP[i])).indexOf(gap);
+              const names = [form.a || "Eq1", "le nul", form.b || "Eq2"];
+              if (gap < 0.08) return <p className="est-note" style={{ color: "var(--muted)" }}>Marche et modele de force sont d'accord. Estimation solide.</p>;
+              return (
+                <p className="est-note">
+                  Divergence sur {names[gi]} : le marche dit {pct(market[gi])}, le modele de force {pct(forceP[gi])}.
+                  {forceP[gi] > market[gi]
+                    ? " Le modele est plus optimiste que le marche : verifie s'il manque une info recente (blessure, forme) au modele."
+                    : " Le marche est plus optimiste que le modele : il price peut-etre une info que les resultats passes ne capturent pas."}
+                </p>
+              );
+            })()}
+
+            {force && (
+              <p className="mini" style={{ marginTop: 10 }}>
+                Force Elo : {force.elo[0]} vs {force.elo[1]} (buts attendus {force.lambda[0].toFixed(2)} - {force.lambda[1].toFixed(2)}).
+                {!market && " Cotes pas encore chargees : estimation basee sur le seul modele de force."}
+              </p>
+            )}
+
+            {/* Contexte qualitatif IA */}
+            <div className="divider" />
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <button className="btn btn-ghost" onClick={fetchContext} disabled={loadingContext || !form.a || !form.b}
+                style={{ color: "var(--blue)", borderColor: "rgba(87,199,255,0.25)" }}>
+                {loadingContext ? "Recherche en cours..." : "Analyser le contexte (IA)"}
+              </button>
+              <span className="mini" style={{ margin: 0 }}>Blessures, turnover, enjeu. Ajuste les buts attendus du modele de force.</span>
+            </div>
+
+            {context && context.error && <p className="error">{context.error}</p>}
+            {context && !context.error && (
+              <div className="ai-reason">
+                {context.reasoning}
+                <div className="stat-line" style={{ marginTop: 8 }}>
+                  buts attendus x <b>{context.multHome?.toFixed(2)}</b> pour {form.a || "Eq1"},
+                  x <b>{context.multAway?.toFixed(2)}</b> pour {form.b || "Eq2"}.
+                </div>
+                {context.factors?.length > 0 && (
+                  <div className="stat-line" style={{ marginTop: 6 }}>{context.factors.join(" · ")}</div>
+                )}
+                {context.sources?.length > 0 && (
+                  <div className="sources" style={{ marginTop: 8 }}>
+                    {context.sources.map((s, i) => (
+                      <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="src-link">{s.title?.slice(0, 28) || "source"}</a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* 02 : ANALYSER UN MATCH */}
         <div className="card glow">
           <div className="sec-title"><span className="num">02</span> Analyser un match</div>
@@ -551,6 +684,17 @@ export default function App() {
             <input className="input" inputMode="numeric" placeholder="153" value={form.g2} onChange={(e) => set("g2", e.target.value)} />
           </div>
 
+          <div className="divider" />
+          <label className="label">Repartition de la foule MPP en % (1 / N / 2)</label>
+          <p className="mini" style={{ marginTop: 0, marginBottom: 8 }}>
+            Pourcentage des joueurs sur chaque issue. Auto-rempli depuis MPP. C'est ce qui mesure ta differenciation au classement.
+          </p>
+          <div className="row g3">
+            <input className="input" inputMode="numeric" placeholder="82" value={form.c1} onChange={(e) => set("c1", e.target.value)} />
+            <input className="input" inputMode="numeric" placeholder="10" value={form.cN} onChange={(e) => set("cN", e.target.value)} />
+            <input className="input" inputMode="numeric" placeholder="8" value={form.c2} onChange={(e) => set("c2", e.target.value)} />
+          </div>
+
           {/* VERDICT */}
           <div className="divider" />
           {!verdict && <div className="verdict-empty">Remplis les 3 cotes et les 3 points pour obtenir le verdict.</div>}
@@ -581,13 +725,26 @@ export default function App() {
                       <div className="barwrap"><div className="bar" style={{ width: pct(verdict.p[i]), background: col }} /></div>
                       <div className="statline">
                         <span>proba marche <b>{pct(verdict.p[i])}</b></span>
+                        {verdict.crowd && <span>foule <b>{pct(verdict.crowd[i])}</b></span>}
                         <span>points MPP <b>{verdict.G[i]}</b></span>
-                        <span>valeur vs MPP <b className={verdict.edge[i] >= 1 ? "edge-up" : "edge-dn"}>{verdict.edge[i].toFixed(2)}x</b></span>
+                        <span>valeur vs {verdict.crowd ? "foule" : "MPP"} <b className={verdict.edge[i] >= 1 ? "edge-up" : "edge-dn"}>{verdict.edge[i].toFixed(2)}x</b></span>
                       </div>
                     </div>
                   );
                 })}
               </div>
+
+              {verdict.crowd && verdict.levIdx >= 0 && (
+                <div className="reason" style={{ borderLeftColor: "var(--amber)", marginTop: 14 }}>
+                  Meilleur pari differenciant (levier prudent) : <b>{verdict.names[verdict.levIdx]}</b>.
+                  S'il passe, tu prends de vitesse {pct(verdict.separation[verdict.levIdx])} du field
+                  (seuls {pct(verdict.crowd[verdict.levIdx])} des joueurs l'ont coche).
+                  {verdict.trapIdx >= 0 && (
+                    <> Piege a eviter : la foule surjoue "{verdict.names[verdict.trapIdx]}" ({pct(verdict.crowd[verdict.trapIdx])})
+                    alors que le marche ne lui donne que {pct(verdict.p[verdict.trapIdx])}. Peu de points a gagner, gros risque si elle se trompe.</>
+                  )}
+                </div>
+              )}
 
               <div className="reason">
                 {(() => {
@@ -608,7 +765,7 @@ export default function App() {
 
               <div className="row g2" style={{ marginTop: 16 }}>
                 <button className="btn btn-accent" onClick={saveMatch}>Enregistrer ce match</button>
-                <button className="btn btn-ghost" onClick={() => { setForm(blank); setMppFilled(false); setAiAnalysis(null); }}>Reinitialiser</button>
+                <button className="btn btn-ghost" onClick={() => { setForm(blank); setMppFilled(false); setContext(null); }}>Reinitialiser</button>
               </div>
             </>
           )}
@@ -628,25 +785,8 @@ export default function App() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, justifyContent: "flex-end" }}>
               <button className="btn btn-ghost" onClick={runEstimateXg}>Estimer</button>
-              <button
-                className="btn btn-ghost"
-                onClick={fetchAIAnalysis}
-                disabled={loadingAI || !form.a || !form.b || !form.o1}
-                style={{ color: "var(--blue)", borderColor: "rgba(87,199,255,0.25)" }}
-              >
-                {loadingAI ? "..." : "IA"}
-              </button>
             </div>
           </div>
-
-          {aiAnalysis && (
-            <div className="ai-reason">
-              {aiAnalysis.error
-                ? <span style={{ color: "var(--red)" }}>{aiAnalysis.error}</span>
-                : aiAnalysis.reasoning
-              }
-            </div>
-          )}
 
           {scores && (
             <>
@@ -684,9 +824,10 @@ export default function App() {
         </div>
 
         <p className="foot">
-          Methode : cote decimale convertie en proba, marge bookmaker retiree, esperance = proba x points MPP.
+          Methode : estimation 1/N/2 par compilation des sources (marche sans marge bookmaker + modele de force Elo calibre sur les resultats reels), fusionnees en consensus. Esperance = proba consensus x points MPP.
           Le mode ajuste la prise de risque via un exposant gamma (prudent = 1.7, equilibre = 1.0, agressif = 0.5).
-          La valeur vs MPP compare la proba du marche a la proba implicite des points MPP : au dessus de 1, l'issue est sous-cotee par le jeu.
+          La valeur vs foule compare la proba du marche a la part reelle de joueurs sur l'issue : au dessus de 1, l'issue est sous-jouee donc sur-payee.
+          Le pari differenciant maximise un levier prudent (proba x points x racine de la rarete dans la foule).
           Aucun argent reel. L'outil aide la decision, il ne predit pas les resultats.
         </p>
       </div>

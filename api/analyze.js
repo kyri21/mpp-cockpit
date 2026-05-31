@@ -1,14 +1,15 @@
-// Fonction serverless Vercel : analyse IA d'un match via Anthropic API.
-// Recoit POST { home, away, o1, oN, o2 }, retourne { xgA, xgB, reasoning }.
+// Fonction serverless Vercel : contexte qualitatif d'un match via Anthropic API.
+// L'IA ne devine pas un xG. Elle cherche le contexte reel (recherche web) et le
+// traduit en multiplicateurs explicites sur les buts attendus de chaque equipe.
+//
+// Recoit POST { home, away, date? }.
+// Retourne { multHome, multAway, reasoning, factors:[...], sources:[...] }.
+// multHome/multAway dans [0.6, 1.4], 1.0 = aucun facteur notable.
 // La cle ANTHROPIC_API_KEY reste cote serveur, jamais exposee au browser.
 
 import Anthropic from "@anthropic-ai/sdk";
 
-function vigRemove(o1, oN, o2) {
-  const r1 = 1 / o1, rN = 1 / oN, r2 = 1 / o2;
-  const total = r1 + rN + r2;
-  return [r1 / total, rN / total, r2 / total];
-}
+const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -20,38 +21,53 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Cle API manquante. Configurer ANTHROPIC_API_KEY dans Vercel." });
   }
 
-  const { home, away, o1, oN, o2 } = req.body || {};
-  if (!home || !away || !o1 || !oN || !o2) {
-    return res.status(400).json({ error: "Parametres manquants : home, away, o1, oN, o2 requis." });
+  const { home, away, date } = req.body || {};
+  if (!home || !away) {
+    return res.status(400).json({ error: "Parametres manquants : home et away requis." });
   }
 
-  const [p1, pN, p2] = vigRemove(parseFloat(o1), parseFloat(oN), parseFloat(o2));
+  const today = date || new Date().toISOString().slice(0, 10);
 
-  const prompt = `Tu es un analyste football expert en Coupe du Monde. Pour ce match de phase de groupes 2026 :
-Equipe domicile : ${home}
-Equipe exterieur : ${away}
-Cotes Pinnacle : 1=${o1} N=${oN} 2=${o2}
-Probabilites nettes : ${home} ${(p1 * 100).toFixed(1)}% / Nul ${(pN * 100).toFixed(1)}% / ${away} ${(p2 * 100).toFixed(1)}%
+  const prompt = `Nous sommes le ${today}, Coupe du Monde 2026. Match : ${home} contre ${away}.
+Cherche sur le web le contexte recent de ces deux selections : blessures et suspensions de joueurs cles, joueurs menages, etat de forme tres recent, enjeu du match (equipe deja qualifiee qui fait tourner, match decisif), meteo extreme.
 
-Estime les buts attendus (xG) en te basant sur le style de jeu et la puissance offensive/defensive de chaque equipe en CdM 2026.
-Reponds UNIQUEMENT avec ce JSON (rien d'autre) : {"xgA": float, "xgB": float, "reasoning": "2 phrases max"}`;
+Tu ne predis pas le resultat. Tu traduis ce contexte en deux multiplicateurs sur les buts attendus de chaque equipe :
+- 1.0 = rien de notable.
+- en dessous de 1.0 = l'equipe devrait marquer moins que sa norme (absences offensives, turnover, sans enjeu).
+- au dessus de 1.0 = l'equipe devrait marquer plus (adversaire diminue en defense, forme exceptionnelle).
+Reste mesure : la plupart des multiplicateurs sont entre 0.85 et 1.15. Maximum 0.6 a 1.4.
+
+Reponds UNIQUEMENT avec ce JSON, rien d'autre :
+{"multHome": float, "multAway": float, "reasoning": "2 phrases max en francais", "factors": ["fait court", "..."]}`;
 
   const client = new Anthropic({ apiKey: key });
 
   let message;
   try {
     message = await client.messages.create({
-      model: "claude-opus-4-8",
-      max_tokens: 256,
+      model: "claude-sonnet-4-6",
+      max_tokens: 1024,
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }],
       messages: [{ role: "user", content: prompt }],
     });
   } catch (e) {
     return res.status(502).json({ error: `Erreur Anthropic : ${e.message}` });
   }
 
-  const text = message.content[0]?.text || "";
+  // Concatene tous les blocs texte de la reponse (le reste = recherches web).
+  const text = (message.content || [])
+    .filter((b) => b.type === "text")
+    .map((b) => b.text)
+    .join("\n");
 
-  // Claude peut entourer le JSON de backticks ou de texte parasite — on extrait le JSON.
+  // Collecte les URLs citees comme sources.
+  const sources = [];
+  for (const b of message.content || []) {
+    if (b.type === "web_search_tool_result" && Array.isArray(b.content)) {
+      for (const r of b.content) if (r.url) sources.push({ title: r.title || r.url, url: r.url });
+    }
+  }
+
   let parsed;
   try {
     const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -60,13 +76,15 @@ Reponds UNIQUEMENT avec ce JSON (rien d'autre) : {"xgA": float, "xgB": float, "r
     return res.status(502).json({ error: "Reponse IA non parseable.", raw: text });
   }
 
-  if (typeof parsed.xgA !== "number" || typeof parsed.xgB !== "number") {
+  if (typeof parsed.multHome !== "number" || typeof parsed.multAway !== "number") {
     return res.status(502).json({ error: "Reponse IA incomplete.", raw: text });
   }
 
   res.json({
-    xgA: Math.round(parsed.xgA * 10) / 10,
-    xgB: Math.round(parsed.xgB * 10) / 10,
+    multHome: clamp(parsed.multHome, 0.6, 1.4),
+    multAway: clamp(parsed.multAway, 0.6, 1.4),
     reasoning: parsed.reasoning || "",
+    factors: Array.isArray(parsed.factors) ? parsed.factors.slice(0, 6) : [],
+    sources: sources.slice(0, 5),
   });
 }

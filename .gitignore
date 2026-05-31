@@ -3,3 +3,7 @@ dist/
 .env.local
 .env
 .DS_Store
+.gstack/
+
+# Dataset brut (3.7 Mo), refetch via scripts/buildElo.js si besoin. Seul data/elo-ratings.json est embarque.
+data/intl-results.csv
