@@ -38,10 +38,10 @@ ${lines}
 Pour chaque joueur, estime :
 - "share" : la fraction des buts de SA SELECTION qu'il marque, penalties inclus (ex. un grand buteur tireur de penalty est souvent autour de 0.30 a 0.45 ; un attaquant partage autour de 0.15 a 0.25). Entre 0.1 et 0.6.
 - "penalty" : true s'il est le tireur de penalty attitre, sinon false.
-- "form" : une phrase courte sur sa forme, ses blessures, son statut de titulaire.
+- "form" : une phrase tres courte (15 mots maximum) sur sa forme, ses blessures, son statut de titulaire.
 - "odds" : sa cote decimale actuelle de meilleur buteur du tournoi chez un bookmaker si tu la trouves, sinon null.
 
-Reponds UNIQUEMENT avec ce JSON, rien d'autre :
+Reponds UNIQUEMENT avec ce JSON compact, rien d'autre, et termine bien l'objet :
 {"players": [{"player": "Nom", "team": "Equipe", "share": float, "penalty": bool, "form": "...", "odds": float ou null}]}`;
 
   const client = new Anthropic({ apiKey: key });
@@ -50,7 +50,7 @@ Reponds UNIQUEMENT avec ce JSON, rien d'autre :
   try {
     message = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 2048,
+      max_tokens: 8192,
       tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 6 }],
       messages: [{ role: "user", content: prompt }],
     });
@@ -70,19 +70,30 @@ Reponds UNIQUEMENT avec ce JSON, rien d'autre :
     }
   }
 
-  let parsed;
+  // Extraction robuste. On tente d'abord le JSON complet ; si la reponse a ete tronquee
+  // (max_tokens atteint, JSON sans accolade fermante), on recupere quand meme tous les objets
+  // joueur complets un par un, pour ne pas perdre la liste entiere a cause du dernier element.
+  let playersRaw = null;
   try {
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
-  } catch {
+    const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+    if (Array.isArray(parsed.players)) playersRaw = parsed.players;
+  } catch { /* on bascule sur le salvage ci-dessous */ }
+
+  if (!playersRaw) {
+    // Salvage : chaque objet joueur n'a pas d'accolade imbriquee, donc {...} l'isole.
+    const salvaged = [];
+    for (const m of text.matchAll(/\{[^{}]*"player"[^{}]*\}/g)) {
+      try { salvaged.push(JSON.parse(m[0])); } catch { /* objet incomplet, on l'ignore */ }
+    }
+    if (salvaged.length) playersRaw = salvaged;
+  }
+
+  if (!Array.isArray(playersRaw) || !playersRaw.length) {
     return res.status(502).json({ error: "Reponse IA non parseable.", raw: text });
   }
 
-  if (!Array.isArray(parsed.players)) {
-    return res.status(502).json({ error: "Reponse IA incomplete.", raw: text });
-  }
-
-  const players = parsed.players.map((p) => ({
+  const players = playersRaw.map((p) => ({
     player: p.player,
     team: p.team,
     share: typeof p.share === "number" ? clamp(p.share, 0.1, 0.6) : null,
