@@ -223,6 +223,30 @@ function dayLabel(iso) {
 const timeLabel = (iso) => new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 const normTeam = (s) => (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
+// Cle d'identite d'un match (paire d'equipes non ordonnee) : evite les doublons enregistres,
+// meme si les equipes sont saisies dans l'autre sens.
+const matchKeyOf = (a, b) => [normTeam(a), normTeam(b)].sort().join("|");
+function entryKey(e) {
+  if (e?.matchKey) return e.matchKey;
+  if (e?.form?.a && e?.form?.b) return matchKeyOf(e.form.a, e.form.b);
+  if (typeof e?.label === "string" && e.label.includes(" - ")) {
+    const [a, b] = e.label.split(" - ");
+    return matchKeyOf(a, b);
+  }
+  return `id:${e?.id}`;
+}
+// Retire les doublons d'une liste enregistree, en gardant l'entree qui porte une issue reelle.
+function dedupSaved(list) {
+  const byKey = new Map();
+  for (const e of list || []) {
+    const k = entryKey(e);
+    const prev = byKey.get(k);
+    if (!prev) byKey.set(k, e);
+    else if (prev.result == null && e.result != null) byKey.set(k, e);
+  }
+  return [...byKey.values()];
+}
+
 export default function App() {
   const [mode, setMode] = useState("equilibre");
   const [pos, setPos] = useState({ rank: "", players: "", left: "" });
@@ -255,9 +279,11 @@ export default function App() {
   const [loadingContext, setLoadingContext] = useState(false);
 
   useEffect(() => {
-    setSaved(ls.get("mpp:matches", []));
-    const saved = ls.get("mpp:pos", null);
-    if (saved) { setPos(saved.pos); setMode(saved.mode); }
+    const loaded = dedupSaved(ls.get("mpp:matches", []));
+    setSaved(loaded);
+    ls.set("mpp:matches", loaded); // nettoie les doublons historiques eventuels
+    const savedPos = ls.get("mpp:pos", null);
+    if (savedPos) { setPos(savedPos.pos); setMode(savedPos.mode); }
   }, []);
 
   const persist = (matches, p = pos, md = mode) => {
@@ -442,8 +468,11 @@ export default function App() {
   const saveMatch = () => {
     if (!verdict) return;
     const v = verdict;
+    const key = matchKeyOf(form.a, form.b);
+    const existing = saved.find((s) => entryKey(s) === key);
     const entry = {
-      id: Date.now(),
+      id: existing ? existing.id : Date.now(),
+      matchKey: key,
       label: `${form.a || "Eq1"} - ${form.b || "Eq2"}`,
       pickName: v.names[v.recIdx],
       pickEv: v.ev[v.recIdx].toFixed(1),
@@ -454,10 +483,12 @@ export default function App() {
       crowdIdx: v.crowdIdx,
       estP: v.p,
       points: v.G,
-      result: null,
+      result: existing ? existing.result : null, // conserve l'issue reelle deja saisie
       form: { ...form },
     };
-    const next = [entry, ...saved].slice(0, 60);
+    // Upsert : on retire toute entree du meme match, puis on place la version a jour en tete.
+    const rest = saved.filter((s) => entryKey(s) !== key);
+    const next = [entry, ...rest].slice(0, 60);
     setSaved(next);
     persist(next);
     setMppFilled(false);
