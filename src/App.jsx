@@ -128,6 +128,12 @@ const CSS = `
 .day-head { width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; background:#0a100e; border:1px solid var(--line2); border-radius:10px; padding:11px 14px; cursor:pointer; color:var(--ink); font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:500; transition: border-color .15s; }
 .day-head:hover { border-color: var(--accent-dim); }
 .day-count { color: var(--muted); font-size:11px; }
+@keyframes flashUpdate {
+  0%   { background: rgba(212,255,63,0.22); border-color: var(--accent); }
+  70%  { background: rgba(212,255,63,0.10); border-color: var(--accent-dim); }
+  100% { background: #0a100e; border-color: var(--line2); }
+}
+.srow.flash { animation: flashUpdate 1.6s ease-out; }
 .srow { display:flex; align-items:center; justify-content:space-between; gap:10px; background:#0a100e; border:1px solid var(--line2); border-radius:10px; padding: 10px 12px; }
 .srow .m { font-weight:600; font-size:14px; }
 .srow .p { font-family:'JetBrains Mono',monospace; font-size:12px; color: var(--accent); }
@@ -260,6 +266,8 @@ export default function App() {
   const [buteurs, setButeurs] = useState(null);
   const [loadingButeurs, setLoadingButeurs] = useState(false);
   const [buteursNote, setButeursNote] = useState(null);
+  // Id du match enregistre a faire clignoter brievement (feedback de mise a jour).
+  const [flashId, setFlashId] = useState(null);
 
   // Etat des cotes en direct depuis The Odds API.
   const [apiMatches, setApiMatches] = useState([]);
@@ -491,6 +499,11 @@ export default function App() {
     const next = [entry, ...rest].slice(0, 60);
     setSaved(next);
     persist(next);
+    // Feedback visuel : si on a ecrase un match existant, on le fait clignoter en tete.
+    if (existing) {
+      setFlashId(entry.id);
+      setTimeout(() => setFlashId((cur) => (cur === entry.id ? null : cur)), 1600);
+    }
     setMppFilled(false);
     setContext(null);
     setForm(blank);
@@ -1016,10 +1029,10 @@ export default function App() {
               const hasRec = s.recIdx != null;
               const won = hasRec && s.result != null && s.recIdx === s.result;
               return (
-                <div key={s.id} className="srow" style={{ flexDirection: "column", alignItems: "stretch", gap: 8 }}>
+                <div key={s.id} className={"srow" + (s.id === flashId ? " flash" : "")} style={{ flexDirection: "column", alignItems: "stretch", gap: 8 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                     <div onClick={() => loadMatch(s)} style={{ cursor: "pointer", flex: 1 }}>
-                      <div className="m">{s.label}</div>
+                      <div className="m">{s.label}{s.id === flashId && <span className="tag" style={{ color: "var(--accent)", marginLeft: 8 }}>mis a jour</span>}</div>
                       <div className="p">{s.pickName} · {s.pickEv} pts · {s.pickP}{s.diff ? " · differenciant" : ""}</div>
                     </div>
                     <button className="del" onClick={() => delMatch(s.id)} title="Supprimer">×</button>
