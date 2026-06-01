@@ -125,6 +125,9 @@ const CSS = `
 .scorecell.top .s { color: var(--accent); }
 
 .saved { display:grid; gap:10px; margin-top: 6px; }
+.day-head { width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; background:#0a100e; border:1px solid var(--line2); border-radius:10px; padding:11px 14px; cursor:pointer; color:var(--ink); font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:500; transition: border-color .15s; }
+.day-head:hover { border-color: var(--accent-dim); }
+.day-count { color: var(--muted); font-size:11px; }
 .srow { display:flex; align-items:center; justify-content:space-between; gap:10px; background:#0a100e; border:1px solid var(--line2); border-radius:10px; padding: 10px 12px; }
 .srow .m { font-weight:600; font-size:14px; }
 .srow .p { font-family:'JetBrains Mono',monospace; font-size:12px; color: var(--accent); }
@@ -211,6 +214,15 @@ function formatDate(iso) {
   });
 }
 
+// Regroupement de la liste des matchs par jour (accordeon de la section 00).
+const dayKeyOf = (iso) => (iso || "").slice(0, 10);
+function dayLabel(iso) {
+  const s = new Date(iso).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+const timeLabel = (iso) => new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+const normTeam = (s) => (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
 export default function App() {
   const [mode, setMode] = useState("equilibre");
   const [pos, setPos] = useState({ rank: "", players: "", left: "" });
@@ -230,6 +242,9 @@ export default function App() {
   const [loadingOdds, setLoadingOdds] = useState(false);
   const [oddsError, setOddsError] = useState(null);
   const [quotaRemaining, setQuotaRemaining] = useState(null);
+  // Ergonomie de la liste : filtre par equipe et jour ouvert (accordeon).
+  const [matchFilter, setMatchFilter] = useState("");
+  const [openDay, setOpenDay] = useState(null); // null = ouvre le jour le plus proche par defaut
 
   // Etat des stats d'equipes depuis football-data.org.
   const [stats, setStats] = useState(null);
@@ -507,23 +522,58 @@ export default function App() {
             )}
           </div>
           {oddsError && <p className="error">{oddsError}</p>}
-          {apiMatches.length > 0 && (
-            <div className="saved" style={{ marginTop: 14 }}>
-              {apiMatches.map((m) => (
-                <div key={m.id} className="srow match-row" onClick={() => selectMatch(m)}>
-                  <div style={{ flex: 1 }}>
-                    <div className="m">{m.home} vs {m.away}</div>
-                    <div className="p">
-                      {formatDate(m.commence)}
-                      {" · "}cotes {m.o1} / {m.oN} / {m.o2}
-                      {" · "}{m.bookmaker}
+          {apiMatches.length > 0 && (() => {
+            const q = normTeam(matchFilter.trim());
+            const filtered = apiMatches
+              .filter((m) => !q || normTeam(m.home).includes(q) || normTeam(m.away).includes(q))
+              .sort((a, b) => new Date(a.commence) - new Date(b.commence));
+            // Groupe par jour en preservant l'ordre chronologique.
+            const days = [];
+            const byKey = new Map();
+            for (const m of filtered) {
+              const k = dayKeyOf(m.commence);
+              if (!byKey.has(k)) { byKey.set(k, { key: k, label: dayLabel(m.commence), matches: [] }); days.push(byKey.get(k)); }
+              byKey.get(k).matches.push(m);
+            }
+            const filtering = q.length > 0;
+            const activeDay = openDay === null ? days[0]?.key : openDay;
+            return (
+              <div style={{ marginTop: 14 }}>
+                <input className="input" placeholder="Filtrer une equipe..." value={matchFilter}
+                  onChange={(e) => setMatchFilter(e.target.value)} style={{ marginBottom: 10 }} />
+                {days.length === 0 && <p className="mini">Aucun match ne correspond a ce filtre.</p>}
+                {days.map((d) => {
+                  const open = filtering || d.key === activeDay;
+                  return (
+                    <div key={d.key} style={{ marginBottom: 8 }}>
+                      <button className="day-head" onClick={() => setOpenDay((cur) => {
+                        const eff = cur === null ? days[0]?.key : cur;
+                        return eff === d.key ? "__none__" : d.key;
+                      })}>
+                        <span>{open ? "▾" : "▸"} {d.label}</span>
+                        <span className="day-count">{d.matches.length} match{d.matches.length > 1 ? "s" : ""}</span>
+                      </button>
+                      {open && (
+                        <div className="saved" style={{ marginTop: 8 }}>
+                          {d.matches.map((m) => (
+                            <div key={m.id} className="srow match-row" onClick={() => selectMatch(m)}>
+                              <div style={{ flex: 1 }}>
+                                <div className="m">{m.home} vs {m.away}</div>
+                                <div className="p">
+                                  {timeLabel(m.commence)}{" · "}cotes {m.o1} / {m.oN} / {m.o2}{" · "}{m.bookmaker}
+                                </div>
+                              </div>
+                              <span className="tag crowd">Charger</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  <span className="tag crowd">Charger</span>
-                </div>
-              ))}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            );
+          })()}
           {apiMatches.length === 0 && !loadingOdds && !oddsError && (
             <p className="mini">Clique sur Rafraichir pour charger les matchs. Les cotes apparaissent en general 48h avant le coup d'envoi.</p>
           )}
