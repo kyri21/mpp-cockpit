@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { computeVerdict, topScores, estimateXg, pct, forceModel, fuseProb, vigRemove, poissonOutcome, isHostNation, HOST_ELO_ADV } from "./engine/calcul.js";
+import { computeVerdict, topScores, estimateXg, pct, forceModel, fuseProb, vigRemove, poissonOutcome, isHostNation, HOST_ELO_ADV, resolveElo } from "./engine/calcul.js";
 import { findMppMatch } from "./engine/teamMapping.js";
+import { rankCandidates } from "./engine/buteur.js";
 import mppData from "../data/mpp-points.json";
 import eloData from "../data/elo-ratings.json";
+import buteurData from "../data/buteur-candidates.json";
 
 const ELO = eloData.ratings;
 // Poids des sources dans la fusion consensus. Le marche domine car c'est le
@@ -218,6 +220,11 @@ export default function App() {
   const [mppFilled, setMppFilled] = useState(false);
   const [saved, setSaved] = useState([]);
 
+  // Etat du module meilleur buteur (classement des candidats au Soulier d'Or).
+  const [buteurs, setButeurs] = useState(null);
+  const [loadingButeurs, setLoadingButeurs] = useState(false);
+  const [buteursNote, setButeursNote] = useState(null);
+
   // Etat des cotes en direct depuis The Odds API.
   const [apiMatches, setApiMatches] = useState([]);
   const [loadingOdds, setLoadingOdds] = useState(false);
@@ -381,6 +388,40 @@ export default function App() {
     } finally {
       setLoadingContext(false);
     }
+  };
+
+  // Classe les candidats au titre de meilleur buteur : modele structurel local (buts attendus de
+  // l'equipe sur le tournoi) x part du joueur ramenee par l'IA (api/buteur.js).
+  const estimateButeurs = async () => {
+    setLoadingButeurs(true);
+    setButeursNote(null);
+    const cands = buteurData.candidats || [];
+    const shares = {};
+    try {
+      const resp = await fetch("/api/buteur", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ candidates: cands.map((c) => ({ player: c.joueur, team: c.equipe })) }),
+      });
+      const data = await resp.json();
+      if (resp.ok && Array.isArray(data.players)) {
+        for (const p of data.players) shares[p.player] = p;
+      } else {
+        setButeursNote(data.error || "Enrichissement IA indisponible : classement sur les buts d'equipe seulement.");
+      }
+    } catch {
+      setButeursNote("Impossible de joindre /api/buteur : classement sur les buts d'equipe seulement.");
+    }
+    const merged = cands.map((c) => ({
+      joueur: c.joueur, equipe: c.equipe, points: c.points,
+      share: shares[c.joueur]?.share ?? null,
+      penalty: shares[c.joueur]?.penalty ?? null,
+      form: shares[c.joueur]?.form ?? "",
+      odds: shares[c.joueur]?.odds ?? null,
+    }));
+    const ranked = rankCandidates(merged, mppData.matchs, ELO, { resolveEloFn: resolveElo, isHost: isHostNation });
+    setButeurs(ranked);
+    setLoadingButeurs(false);
   };
 
   const saveMatch = () => {
@@ -921,6 +962,63 @@ export default function App() {
               );
             })}
           </div>
+        </div>
+
+        {/* 04 : MEILLEUR BUTEUR (Soulier d'Or) */}
+        <div className="card">
+          <div className="sec-title"><span className="num">04</span> Meilleur buteur (Soulier d'Or)</div>
+          <p className="mini" style={{ marginTop: 8 }}>
+            Buts attendus sur tout le tournoi = force de la poule + profondeur de parcours (Elo), multiplies par la part de buts du joueur (IA). Pick unique a verrouiller avant le coup d'envoi.
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 10 }}>
+            <button className="btn btn-accent" onClick={estimateButeurs} disabled={loadingButeurs}>
+              {loadingButeurs ? "Estimation en cours..." : "Estimer les buteurs"}
+            </button>
+            <span className="mini" style={{ margin: 0 }}>{(buteurData.candidats || []).length} candidats</span>
+          </div>
+          {buteurData.source?.startsWith("PLACEHOLDER") && (
+            <p className="mini" style={{ marginTop: 8, color: "var(--amber)" }}>
+              Liste provisoire : points MPP a collecter via MobAI dans data/buteur-candidates.json.
+            </p>
+          )}
+          {buteursNote && <p className="mini" style={{ marginTop: 8, color: "var(--blue)" }}>{buteursNote}</p>}
+          {buteurs && buteurs.candidates[0]?.lambda != null && (
+            <p className="suggest" style={{ marginTop: 10 }}>
+              Buts attendus n.1 : {buteurs.candidates[0].joueur} ({buteurs.candidates[0].lambda.toFixed(2)} buts).
+            </p>
+          )}
+          {buteurs && (
+            <div style={{ overflowX: "auto", marginTop: 12 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ textAlign: "left", color: "var(--muted)", fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}>
+                    <th style={{ padding: "6px 8px" }}>Joueur</th>
+                    <th style={{ padding: "6px 8px" }}>Equipe</th>
+                    <th style={{ padding: "6px 8px" }}>Buts tournoi</th>
+                    <th style={{ padding: "6px 8px" }}>P(demies)</th>
+                    <th style={{ padding: "6px 8px" }}>Part</th>
+                    <th style={{ padding: "6px 8px" }}>Buts joueur</th>
+                    <th style={{ padding: "6px 8px" }}>Pts MPP</th>
+                    <th style={{ padding: "6px 8px" }}>Esperance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {buteurs.candidates.map((c, i) => (
+                    <tr key={c.joueur} style={{ borderTop: "1px solid var(--line2)", background: i === 0 ? "rgba(212,255,63,0.06)" : "transparent" }}>
+                      <td style={{ padding: "8px", fontWeight: i === 0 ? 700 : 500 }}>{c.joueur}{c.penalty ? " (pen)" : ""}</td>
+                      <td style={{ padding: "8px", color: "var(--muted)" }}>{c.equipe}</td>
+                      <td style={{ padding: "8px" }}>{Number.isFinite(c.teamGoals) ? c.teamGoals.toFixed(1) : "-"}</td>
+                      <td style={{ padding: "8px" }}>{c.reachSF != null ? Math.round(c.reachSF * 100) + "%" : "-"}</td>
+                      <td style={{ padding: "8px" }}>{c.share != null ? c.share.toFixed(2) : "-"}</td>
+                      <td style={{ padding: "8px", color: "var(--accent)" }}>{c.lambda != null ? c.lambda.toFixed(2) : "-"}</td>
+                      <td style={{ padding: "8px" }}>{c.points ?? "-"}</td>
+                      <td style={{ padding: "8px" }}>{c.expectedPoints != null ? c.expectedPoints.toFixed(1) : "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         <p className="foot">

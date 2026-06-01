@@ -140,6 +140,18 @@ const ELO_ALIASES = {
   "republic of korea": "south korea", "ir iran": "iran",
   "czechia": "czech republic", "china pr": "china",
   "cote d ivoire": "ivory coast", "bosnia and herzegovina": "bosnia and herzegovina",
+  // Noms francais des fixtures MPP -> dataset Elo anglais (utilises par le module buteur,
+  // qui fait tourner forceModel directement sur les noms FR des fixtures).
+  "mexique": "mexico", "afrique du sud": "south africa", "coree du sud": "south korea",
+  "tchequie": "czech republic", "bosnie": "bosnia and herzegovina", "etats unis": "united states",
+  "suisse": "switzerland", "bresil": "brazil", "maroc": "morocco", "ecosse": "scotland",
+  "australie": "australia", "turquie": "turkey", "allemagne": "germany", "pays bas": "netherlands",
+  "japon": "japan", "equateur": "ecuador", "suede": "sweden", "tunisie": "tunisia",
+  "espagne": "spain", "cap vert": "cape verde", "belgique": "belgium", "egypte": "egypt",
+  "arabie saoudite": "saudi arabia", "nouvelle zelande": "new zealand", "irak": "iraq",
+  "norvege": "norway", "argentine": "argentina", "algerie": "algeria", "autriche": "austria",
+  "jordanie": "jordan", "rd congo": "dr congo", "angleterre": "england", "croatie": "croatia",
+  "ouzbekistan": "uzbekistan", "colombie": "colombia",
 };
 
 // Retrouve la note Elo d'une equipe, robuste aux variantes de nom.

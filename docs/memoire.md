@@ -37,6 +37,22 @@ Tranche, ne pas re-tenter : NE PAS lire le PDF L'Equipe dans l'app. Le PDF est i
 
 Objectif "le plus possible sur iPhone" : atteint. Tout le cockpit et la couche experts RMC tournent sur le tel. Seule la lecture approfondie du PDF L'Equipe reste sur l'ordi (matchs decisifs).
 
+## Module meilleur buteur (Soulier d'Or) - Phase 1 (session 2026-06-01)
+
+Spec : `docs/superpowers/specs/2026-06-01-meilleur-buteur-design.md`. Pronostic unique verrouille
+avant le tournoi. Hybride par phases (option B).
+
+Livre (Phase 1, hors MobAI) : `src/engine/buteur.js` (modele structurel pur : buts attendus de
+l'equipe sur le tournoi = poule via Elo + profondeur de parcours, x part du joueur), tests
+`scripts/test-buteur.mjs` (16 assertions OK), endpoint IA `api/buteur.js` (part de buts, penalty,
+forme, cote), section UI "04 / Meilleur buteur" dans App.jsx, placeholder `data/buteur-candidates.json`.
+Mapping FR->EN ajoute a ELO_ALIASES dans calcul.js (les 48 equipes des fixtures se resolvent
+desormais sur l'Elo). Build et tests verts.
+
+RESTE (necessite MobAI, session suivante) : collecter la vraie liste de candidats + points MPP de
+la section buteurs de l'app MPP dans `data/buteur-candidates.json`, puis test end to end. Ensuite
+Phase 2 : fusion des cotes bookmaker, vraie P(top buteur) par argmax de Poisson, valeur vs foule.
+
 ## Donnees collectees via MobAI : data/mpp-points.json
 
 72 matchs (J.1 a J.3, 11 au 28 juin 2026), points MPP + `prono_foule` par match. Auto-remplissage dans l'app quand le match est charge.
