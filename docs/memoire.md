@@ -49,9 +49,19 @@ forme, cote), section UI "04 / Meilleur buteur" dans App.jsx, placeholder `data/
 Mapping FR->EN ajoute a ELO_ALIASES dans calcul.js (les 48 equipes des fixtures se resolvent
 desormais sur l'Elo). Build et tests verts.
 
-RESTE (necessite MobAI, session suivante) : collecter la vraie liste de candidats + points MPP de
-la section buteurs de l'app MPP dans `data/buteur-candidates.json`, puis test end to end. Ensuite
-Phase 2 : fusion des cotes bookmaker, vraie P(top buteur) par argmax de Poisson, valeur vs foule.
+Collecte MobAI faite (session 2026-06-01) : la vraie liste de la section "Meilleur buteur" de
+l'app MPP est dans `data/buteur-candidates.json`. 20 candidats nommes (Mbappé 80 pts, Messi 80,
+Yamal 100, Kane 100, Vinícius 120, Haaland 150, Ronaldo 200, Depay 250, Lukaku 250, Woltemade 300,
+Brahim Díaz 400, Balogun 500, Kramaric 500, Salah 600, Mahrez 700, Mané 800, Luis Díaz 900,
+Núñez 900, Gyökeres 1000, McTominay 1000) + option hors-liste "Un autre" a 150 pts
+(`hors_liste_bonus`). Les "points" sont les points MPP du pick (plus c'est haut, plus le buteur est
+juge improbable). Pas de % foule ni de cote affiches dans cette section : `prono_foule` absent.
+Les 20 equipes se resolvent sur l'Elo (graphie des fixtures de mpp-points.json) ; tests 16/16 OK,
+build vert, classement end-to-end coherent (Yamal/Espagne en tete par buts d'equipe attendus).
+
+RESTE Phase 2 : fusion des cotes bookmaker, vraie P(top buteur) par argmax de Poisson, valeur vs
+foule. (En Phase 1 la proba est approchee par normalisation des lambda, et la part de buts du
+joueur vient de `api/buteur.js` au clic sur "Estimer les buteurs", teste en prod uniquement.)
 
 ## Donnees collectees via MobAI : data/mpp-points.json
 

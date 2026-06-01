@@ -1,7 +1,29 @@
 {
-  "source": "PLACEHOLDER - vide, a remplir via la collecte MobAI de la section meilleur buteur de l'app MPP",
-  "collecte_le": null,
+  "source": "Section 'Meilleur buteur' de l'app MPP (collecte MobAI, iPhone Demis)",
+  "collecte_le": "2026-06-01",
   "verrou": "pick unique, a verrouiller avant le coup d'envoi (2026-06-11)",
-  "note": "Remplir 'candidats' avec la VRAIE liste MPP. Schema par joueur : { joueur, equipe, points, prono_foule? }. points = points MPP du joueur. equipe doit correspondre a la graphie des fixtures de mpp-points.json (accents toleres par le moteur). 'share' (part des buts de l'equipe) n'est PAS stockee ici : elle est ramenee a la volee par api/buteur.js.",
-  "candidats": []
+  "hors_liste_bonus": 150,
+  "note": "Liste figee lue dans l'app MPP le 2026-06-01. 'points' = points MPP attribues pour ce pick (plus c'est eleve, plus le buteur est juge improbable par MPP). Aucun % foule ni cote n'est affiche dans cette section de l'app : 'prono_foule' est donc absent et 'hors_liste_bonus' (150) capture l'option 'Un autre' (choisir un buteur hors liste). 'equipe' suit la graphie des fixtures de mpp-points.json (accents toleres par le moteur). 'share' (part des buts de l'equipe) n'est PAS stockee ici : elle est ramenee a la volee par api/buteur.js.",
+  "candidats": [
+    { "joueur": "Kylian Mbappé", "equipe": "France", "points": 80 },
+    { "joueur": "Lionel Messi", "equipe": "Argentine", "points": 80 },
+    { "joueur": "Lamine Yamal", "equipe": "Espagne", "points": 100 },
+    { "joueur": "Harry Kane", "equipe": "Angleterre", "points": 100 },
+    { "joueur": "Vinícius Júnior", "equipe": "Brésil", "points": 120 },
+    { "joueur": "Erling Haaland", "equipe": "Norvège", "points": 150 },
+    { "joueur": "Cristiano Ronaldo", "equipe": "Portugal", "points": 200 },
+    { "joueur": "Memphis Depay", "equipe": "Pays-Bas", "points": 250 },
+    { "joueur": "Romelu Lukaku", "equipe": "Belgique", "points": 250 },
+    { "joueur": "Nick Woltemade", "equipe": "Allemagne", "points": 300 },
+    { "joueur": "Brahim Díaz", "equipe": "Maroc", "points": 400 },
+    { "joueur": "Folarin Balogun", "equipe": "États-Unis", "points": 500 },
+    { "joueur": "Andrej Kramaric", "equipe": "Croatie", "points": 500 },
+    { "joueur": "Mohamed Salah", "equipe": "Égypte", "points": 600 },
+    { "joueur": "Riyad Mahrez", "equipe": "Algérie", "points": 700 },
+    { "joueur": "Sadio Mané", "equipe": "Sénégal", "points": 800 },
+    { "joueur": "Luis Díaz", "equipe": "Colombie", "points": 900 },
+    { "joueur": "Darwin Núñez", "equipe": "Uruguay", "points": 900 },
+    { "joueur": "Viktor Gyökeres", "equipe": "Suède", "points": 1000 },
+    { "joueur": "Scott McTominay", "equipe": "Écosse", "points": 1000 }
+  ]
 }
