@@ -1,16 +1,7 @@
 {
-  "source": "PLACEHOLDER - a remplacer par la collecte MobAI de la section meilleur buteur de l'app MPP",
+  "source": "PLACEHOLDER - vide, a remplir via la collecte MobAI de la section meilleur buteur de l'app MPP",
   "collecte_le": null,
   "verrou": "pick unique, a verrouiller avant le coup d'envoi (2026-06-11)",
-  "note": "points = points MPP par joueur (a collecter via MobAI). share = part des buts de l'equipe (rempli par api/buteur.js). equipe doit correspondre a la graphie des fixtures de mpp-points.json (accents tolerés).",
-  "candidats": [
-    { "joueur": "Kylian Mbappe", "equipe": "France", "points": null, "prono_foule": null },
-    { "joueur": "Harry Kane", "equipe": "Angleterre", "points": null, "prono_foule": null },
-    { "joueur": "Erling Haaland", "equipe": "Norvège", "points": null, "prono_foule": null },
-    { "joueur": "Lautaro Martinez", "equipe": "Argentine", "points": null, "prono_foule": null },
-    { "joueur": "Vinicius Junior", "equipe": "Brésil", "points": null, "prono_foule": null },
-    { "joueur": "Lamine Yamal", "equipe": "Espagne", "points": null, "prono_foule": null },
-    { "joueur": "Memphis Depay", "equipe": "Pays-Bas", "points": null, "prono_foule": null },
-    { "joueur": "Romelu Lukaku", "equipe": "Belgique", "points": null, "prono_foule": null }
-  ]
+  "note": "Remplir 'candidats' avec la VRAIE liste MPP. Schema par joueur : { joueur, equipe, points, prono_foule? }. points = points MPP du joueur. equipe doit correspondre a la graphie des fixtures de mpp-points.json (accents toleres par le moteur). 'share' (part des buts de l'equipe) n'est PAS stockee ici : elle est ramenee a la volee par api/buteur.js.",
+  "candidats": []
 }
