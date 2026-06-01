@@ -17,6 +17,8 @@ le marche (cotes The Odds API, marge retiree), un modele de force base sur l'Elo
 
 Ensuite seulement vient la couche decision MPP : la probabilite consensus est croisee avec les points MPP pour calculer l'esperance de points, et la position dans la ligue suggere un mode de risque. Un module de score exact (Poisson) et un suivi des resultats completent l'ensemble.
 
+L'app aide aussi au pronostic du meilleur buteur (Soulier d'Or), un pick unique verrouille avant le tournoi. Elle estime les buts attendus de chaque candidat sur tout le tournoi (force de sa poule + profondeur de parcours via l'Elo, multiplies par sa part de buts dans l'equipe) et les croise avec les points MPP. Voir la section dediee plus bas et la spec `docs/superpowers/specs/2026-06-01-meilleur-buteur-design.md`.
+
 ## Architecture retenue (decidee en session 1)
 
 Tout en JavaScript. Frontend React avec Vite, une seule fonction serverless Vercel pour la collecte des cotes, persistance en localStorage cote browser.
@@ -25,13 +27,15 @@ Composant 1, collecte des cotes : une fonction Vercel serverless (`api/odds.js`)
 
 Composant 2, collecte des points MPP (phase 2) : pilotee par MobAI (serveur MCP qui lit l'ecran du telephone deja connecte a MPP) et produit un JSON des points par match. Les identifiants ne quittent jamais l'appareil.
 
-Composant 3, interface : le cockpit React (`src/App.jsx`), porte depuis `mpp-cockpit.jsx`, servi par Vite et deploye sur Vercel.
+Composant 3, interface : le cockpit React (`src/App.jsx`), porte depuis `mpp-cockpit.jsx`, servi par Vite et deploye sur Vercel. La liste des matchs charges (section 00) est groupee par jour en accordeon (le prochain jour ouvert, un seul a la fois) avec un filtre par equipe, triee du plus proche au plus loin.
 
 Composant 3 bis, contexte qualitatif : une fonction Vercel serverless (`api/analyze.js`) qui appelle l'API Anthropic avec recherche web et renvoie des multiplicateurs sur les buts attendus de chaque equipe, plus les sources. La cle ANTHROPIC_API_KEY est une variable d'environnement Vercel.
 
 Composant 4, moteur de calcul : fonctions pures isolees dans `src/engine/calcul.js`, sans aucune dependance a React. Importees par l'interface. Couvre le marche, le modele de force Elo, la fusion consensus et la couche decision MPP.
 
 Composant 5, modele de force hors ligne : `data/elo-ratings.json` (Elo precalcule des selections) est embarque dans le bundle, genere par `scripts/buildElo.js` depuis un historique de matchs internationaux, et calibre par `scripts/calibrate.js`. Aucune cle, aucune API au runtime : ce modele produit une estimation meme sans cotes.
+
+Composant 6, module meilleur buteur : `src/engine/buteur.js` (fonctions pures) estime les buts attendus d'une equipe sur tout le tournoi (poule via l'Elo des adversaires lus dans `mpp-points.json`, plus parcours KO : proba d'avancer x buts attendus contre un adversaire type par tour) puis, via la part de buts du joueur, son lambda. Il reutilise `forceModel` sans modifier `calcul.js` (adversaire synthetique injecte dans les ratings). La donnee joueur (part de buts, tireur de penalty, forme, cote) vient de `api/buteur.js` (Anthropic, recherche web). La liste des candidats et leurs points MPP vivent dans `data/buteur-candidates.json` (collecte MobAI, pick unique fige avant le tournoi). Tests : `scripts/test-buteur.mjs`. Statut : Phase 1 livree ; Phase 2 (fusion des cotes, vraie P(meilleur buteur) par argmax de Poisson, valeur vs foule) a venir.
 
 Stockage : localStorage dans le browser pour la position dans la ligue et les matchs enregistres (avec leur issue reelle pour le suivi). Pas de base de donnees, pas de fichiers serveur.
 
@@ -110,6 +114,7 @@ Developpement local : `npm run dev` puis ouvrir localhost:3000
 Build : `npm run build`
 Deploy : `git push` sur main (Vercel deploie automatiquement)
 Regenerer l'Elo : `node scripts/buildElo.js` (refetch le CSV si absent). Recalibrer : `node scripts/calibrate.js` puis reporter les constantes dans `calcul.js`.
+Tester le module buteur : `node scripts/test-buteur.mjs` (assertions d'invariants, sans framework).
 Revue de presse des matchs du jour : `/revue` dans Claude Code
 Variables d'environnement locales : copier `.env.local.example` en `.env.local` et renseigner `ODDS_API_KEY`
 
@@ -154,7 +159,7 @@ Relire `docs/memoire.md` au debut de chaque session pour reprendre le fil.
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **mpp-cockpit** (472 symbols, 567 relationships, 6 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **mpp-cockpit** (663 symbols, 844 relationships, 16 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
