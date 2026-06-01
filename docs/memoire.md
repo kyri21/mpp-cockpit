@@ -59,6 +59,12 @@ juge improbable). Pas de % foule ni de cote affiches dans cette section : `prono
 Les 20 equipes se resolvent sur l'Elo (graphie des fixtures de mpp-points.json) ; tests 16/16 OK,
 build vert, classement end-to-end coherent (Yamal/Espagne en tete par buts d'equipe attendus).
 
+Fix `api/buteur.js` (2026-06-01) : "Estimer les buteurs" renvoyait "Reponse IA non parseable"
+(colonnes Part/Buts joueur/Esperance vides). Cause : max_tokens 2048 trop petit pour 20 joueurs,
+JSON tronque donc JSON.parse echouait sur tout. Corrige : max_tokens 8192, phrase de forme limitee
+a 15 mots, et parsing resilient (salvage objet par objet si troncature). Teste en prod : 20 joueurs,
+shares dans [0.1,0.6], penos/cotes/sources OK.
+
 RESTE Phase 2 : fusion des cotes bookmaker, vraie P(top buteur) par argmax de Poisson, valeur vs
 foule. (En Phase 1 la proba est approchee par normalisation des lambda, et la part de buts du
 joueur vient de `api/buteur.js` au clic sur "Estimer les buteurs", teste en prod uniquement.)
