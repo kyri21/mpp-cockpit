@@ -156,10 +156,35 @@ La cle API The Odds API ne doit jamais apparaitre dans le code commit, uniquemen
 
 Relire `docs/memoire.md` au debut de chaque session pour reprendre le fil.
 
+## Couche presse PDF et IA : leçons de Rugby Prono (a faire prochaine session, ajoute 2026-06-06)
+
+Contexte : Rugby Prono (app soeur, meme principe de revue de presse PDF en dossier `presse/` plus recherche web sur sites specialises) a fait tourner cette couche pour de vrai sur de vrais matchs et a corrige une cascade de bugs. Voici ce qu'une session MPP devra reprendre pour rendre la lecture de presse reellement utile. Cela MET A JOUR la decision du 2026-05-31 ("lire le PDF L'Equipe dans l'app : rejete") : la raison du rejet (PDF image-only 59 Mo, au dela de la limite Anthropic 32 Mo et du body serverless Vercel ~4,5 Mo) est contournee par Gemini. Le PDF redevient exploitable.
+
+### 1. Ajouter Gemini a cote de Claude (pour lire les PDF image-only)
+Anthropic ne lit pas un PDF scanne de 59 Mo (limite 32 Mo, pas d'OCR fiable). Gemini lit nativement les PDF image-only par vision. Ajouter le SDK `@google/genai` et une variable `GEMINI_API_KEY` (locale et Vercel). Modele : `gemini-2.5-flash`. Pieges constates sur le compte de l'utilisateur : `gemini-2.0-flash` renvoie 429 avec `limit: 0` (free tier non alloue a ce compte, ce n'est PAS un epuisement par usage) ; `gemini-1.5-flash` renvoie 404 (deprecie). La cle Gemini fournie commence par `AQ.` (probable jeton ephemere, peut expirer ; sinon regenerer une vraie cle AI Studio format `AIza...`). Anthropic reste pour la recherche web et l'analyse ; Gemini sert la lecture de PDF.
+
+### 2. Lire les gros PDF par la Files API, jamais en inline
+L'envoi du PDF directement dans la requete plafonne a 20 Mo cote Gemini, et au body serverless Vercel (~4,5 Mo). La Files API (televersement) accepte jusqu'a 2 Go / ~1000 pages et evite les deux limites. En JS : `ai.files.upload({ file })` puis passer le fichier televerse dans `generateContent`. Attendre l'etat ACTIF avant de lire.
+
+### 3. Faire l'extraction PDF EN LOCAL, pas dans une fonction Vercel
+Le dossier `presse/` est gitignore (contenu payant) et trop lourd : il n'existe pas au runtime sur Vercel. Architecture recommandee : un script Node local (ex. `scripts/revue.mjs`, lance en session Claude Code, la ou le PDF existe) lit `presse/*.pdf` via Gemini Files API et ECRIT un petit JSON de faits par equipe (ex. `data/presse-facts-AAAA-MM-JJ.json`), lui commitable et deploye. Le runtime (`api/analyze.js` ou le moteur) ne consomme que ce petit JSON. On separe le travail lourd (local, Gemini, une fois par jour) du runtime (serverless, leger). Anti-doublon respecte : ces faits ajustent les buts attendus comme le contexte IA, ils ne sont JAMAIS une source de fusion separee.
+
+### 4. Pieges qui cassent la couche en silence (a corriger d'emblee)
+1. Reponse JSON entouree de balises ```json : un `JSON.parse` brut echoue et l'ajustement tombe a zero SANS erreur visible (sur tous les matchs). Toujours nettoyer avant de parser : retirer les fences ```json, sinon isoler du premier `{` au dernier `}`. C'est le bug le plus sournois rencontre (il a annule toute la couche IA de Rugby Prono sans le moindre message).
+2. Erreur 503 "overloaded" tres frequente chez Gemini : reessayer avec backoff (distinct du quota 429).
+3. Noms de fichiers accentues (ex. "L'Equipe.pdf") : le televersement peut planter sur l'encodage du nom. Copier le fichier sous un nom ASCII neutre avant d'envoyer.
+4. Compression PDF : ghostscript `-dPDFSETTINGS=/ebook` reduit certains PDF mais PAS les journaux deja optimises (un Midi Olympique restait a 38 Mo). Ne pas compter sur la compression ; la Files API (point 2) evite d'avoir a compresser. Si vraiment necessaire, re-rasteriser via `pdftoppm` basse definition puis recombiner (img2pdf ou Pillow), au prix de la lisibilite.
+5. Rapprochement des noms : la presse ecrit les equipes autrement que le code (en foot : formes longues ou courtes, langues, surnoms). Donner au modele la liste EXACTE de tes noms plus des exemples de correspondance, et lui faire produire la fiche par equipe DIRECTEMENT (lecture plus structuration en UNE seule etape Gemini), au lieu de passer par un second modele plus faible qui reperd tout (erreur faite dans Rugby Prono : le maillon local perdait les faits a cause des noms officiels).
+6. Anti-invention : exiger "n'extrais que ce qui est ecrit dans la presse, n'invente aucun nom ni information". Les modeles completent volontiers avec une memoire perimee (joueurs partis, vieux effectifs) ; se mefier des details nominatifs et les traiter comme indicatifs.
+7. Ne pas avaler les erreurs en silence : en cas d'echec de lecture, logguer (console.error) et renvoyer des fiches vides explicites, pour distinguer "presse indisponible" de "presse neutre".
+
+### 5. Recherche web sites specialises
+La recherche web Anthropic (`api/analyze.js`) couvre deja RMC. Pour elargir (L'Equipe, sites de foot specialises), garder ces sources comme contexte qualitatif qui ajuste les buts attendus, jamais comme pronostic ni source de fusion separee (principe anti-doublon deja en place).
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **mpp-cockpit** (663 symbols, 844 relationships, 16 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **mpp-cockpit** (675 symbols, 864 relationships, 17 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

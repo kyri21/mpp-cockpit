@@ -1,0 +1,71 @@
+{
+  "source": "L'Equipe",
+  "paperDate": "2026-05-29",
+  "generatedAt": "2026-06-06T04:12:53.867Z",
+  "teams": {
+    "Argentina": {
+      "facts": [
+        "Lionel Messi est bien présent malgré son alerte d'il y a quelques jours à l'ischio-jambier gauche.",
+        "Franco Mastantuono (milieu, Real Madrid) est absent.",
+        "Giovani Lo Celso (milieu, Betis Séville) est absent.",
+        "Geronimo Rulli, Leonardo Balerdi, Facundo Medina et Valentin Barco sont dans la liste des 26 joueurs."
+      ]
+    },
+    "Brazil": {
+      "facts": [
+        "Neymar est touché à un mollet (lésion du deuxième grade).",
+        "Neymar a une convalescence de deux à trois semaines.",
+        "Neymar ne disputera pas les deux matches amicaux (contre le Panama et l'Égypte le 7 juin).",
+        "Le sélectionneur accorde quinze jours de plus à Neymar pour être prêt.",
+        "Si Neymar ne se remet pas, Joao Pedro (attaquant de Chelsea) pourrait bénéficier du strapontin disponible.",
+        "Casemiro sera capitaine contre le Panama."
+      ]
+    },
+    "France": {
+      "facts": [
+        "Lucas Hernandez (Paris-SG), Warren Zaïre-Emery (Paris-SG), Désiré Doué (Paris-SG), Bradley Barcola (Paris-SG), Ousmane Dembélé (Paris-SG) et William Saliba (Arsenal) sont exemptés de la première séance (due à la finale de la Ligue des champions).",
+        "Maxence Lacroix (Crystal Palace) et Jean-Philippe Mateta (Crystal Palace) sont attendus demain (après la finale de Ligue Conférence).",
+        "Les Parisiens et Saliba devraient être ménagés lors du premier match de préparation (jeudi 4 juin contre la Côte d'Ivoire).",
+        "La Coupe du monde débutera pour les Bleus le 16 juin à New York contre le Sénégal."
+      ]
+    },
+    "Panama": {
+      "facts": [
+        "Le Brésil affrontera le Panama en match amical, Neymar ne disputera pas ce match.",
+        "Casemiro sera capitaine pour le Brésil contre le Panama."
+      ]
+    },
+    "Egypt": {
+      "facts": [
+        "Le Brésil affrontera l'Égypte en match amical le 7 juin, Neymar ne disputera pas ce match."
+      ]
+    },
+    "Ivory Coast": {
+      "facts": [
+        "La France affrontera la Côte d'Ivoire en match de préparation le jeudi 4 juin (21h10) à Nantes.",
+        "Les joueurs du Paris-SG et William Saliba devraient être ménagés lors du match contre la Côte d'Ivoire."
+      ]
+    },
+    "Northern Ireland": {
+      "facts": [
+        "La France affrontera l'Irlande du Nord en match de préparation le 8 juin (21h10) à Villeneuve-d'Ascq.",
+        "Tout le monde (tous les 26 joueurs convoqués pour l'équipe de France) pourra participer au match de préparation contre l'Irlande du Nord."
+      ]
+    },
+    "Senegal": {
+      "facts": [
+        "La Coupe du monde débutera pour les Bleus le 16 juin à New York contre le Sénégal."
+      ]
+    },
+    "Iraq": {
+      "facts": [
+        "La France affrontera l'Irak le 22 juin en 2ème journée de phase de groupes."
+      ]
+    },
+    "Norway": {
+      "facts": [
+        "La Norvège affrontera la France le 26 juin en 3ème journée de phase de groupes."
+      ]
+    }
+  }
+}
