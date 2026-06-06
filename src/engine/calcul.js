@@ -166,6 +166,21 @@ export function resolveElo(name, ratings) {
   return null;
 }
 
+// Retrouve le NOM canonique d'une equipe (cle du dataset Elo, anglais), robuste aux
+// variantes FR/EN. Meme logique d'alias que resolveElo, mais renvoie le nom au lieu de
+// la note. Utilise par la couche presse pour rapprocher les noms du cockpit (francais)
+// des cles du JSON de faits (anglais). Renvoie null si introuvable.
+export function canonicalTeam(name, ratings) {
+  if (!ratings || !name) return null;
+  if (ratings[name] != null) return name;
+  const norm = normalizeName(name);
+  const aliased = ELO_ALIASES[norm] || norm;
+  for (const key of Object.keys(ratings)) {
+    if (normalizeName(key) === aliased) return key;
+  }
+  return null;
+}
+
 // Correction Dixon-Coles sur les quatre petits scores.
 function dcTau(x, y, lh, la, rho) {
   if (x === 0 && y === 0) return 1 - lh * la * rho;
