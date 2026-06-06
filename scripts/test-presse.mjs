@@ -1,7 +1,7 @@
 // Tests d'invariants de la couche presse. Lance : node scripts/test-presse.mjs
 // Pas de framework : assertions Node simples, dans l'esprit de test-buteur.mjs.
 import {
-  cleanJsonText, asciiSlug, factsForTeams, buildPresseBlock, loadPresseFacts,
+  cleanJsonText, asciiSlug, factsForTeams, buildPresseBlock, loadPresseFacts, latestPresseDate,
 } from "../src/engine/presse.js";
 import { canonicalTeam } from "../src/engine/calcul.js";
 import elo from "../data/elo-ratings.json" with { type: "json" };
@@ -44,6 +44,20 @@ writeFileSync(join(dir, "presse-facts-2026-05-30.json"), "{ pas du json");
 ok(JSON.stringify(loadPresseFacts("2026-05-30", dir)) === JSON.stringify({ teams: {} }), "json malforme -> teams vide");
 ok(JSON.stringify(loadPresseFacts(null, dir)) === JSON.stringify({ teams: {} }), "date nulle -> teams vide");
 rmSync(dir, { recursive: true, force: true });
+
+// latestPresseDate : repli sur le journal le plus recent, borne dans le temps.
+const dir2 = mkdtempSync(join(tmpdir(), "latest-"));
+writeFileSync(join(dir2, "presse-facts-2026-06-04.json"), "{}");
+writeFileSync(join(dir2, "presse-facts-2026-06-05.json"), "{}");
+writeFileSync(join(dir2, "autre.json"), "{}");
+ok(latestPresseDate(dir2, "2026-06-06") === "2026-06-05", "prend le plus recent dans la fenetre");
+ok(latestPresseDate(dir2, "2026-06-20") === null, "trop ancien -> null (hors fenetre)");
+ok(latestPresseDate(dir2, "2026-06-05") === "2026-06-05", "meme jour accepte");
+ok(latestPresseDate("/dossier/inexistant", "2026-06-06") === null, "dossier absent -> null");
+const dir3 = mkdtempSync(join(tmpdir(), "empty-"));
+ok(latestPresseDate(dir3, "2026-06-06") === null, "aucun fichier -> null");
+rmSync(dir2, { recursive: true, force: true });
+rmSync(dir3, { recursive: true, force: true });
 
 // canonicalTeam : nom FR ou EN -> cle canonique du dataset Elo.
 const R = elo.ratings;

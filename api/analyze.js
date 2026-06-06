@@ -9,7 +9,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { join } from "node:path";
-import { loadPresseFacts, factsForTeams, buildPresseBlock } from "../src/engine/presse.js";
+import { loadPresseFacts, factsForTeams, buildPresseBlock, latestPresseDate } from "../src/engine/presse.js";
 import { canonicalTeam } from "../src/engine/calcul.js";
 import elo from "../data/elo-ratings.json" with { type: "json" };
 
@@ -32,9 +32,16 @@ export default async function handler(req, res) {
 
   const today = date || new Date().toISOString().slice(0, 10);
 
-  // Couche presse : faits du jour extraits localement par Gemini (scripts/revue.mjs).
+  // Couche presse : faits extraits localement par Gemini (scripts/revue.mjs).
   // Ils affinent le contexte Anthropic existant, sans creer de source separee (anti-doublon).
-  const presse = loadPresseFacts(today, join(process.cwd(), "data"));
+  // L'app n'envoie pas de date : on tente le jour courant, sinon le journal le plus recent
+  // (borne a quelques jours par latestPresseDate pour ne pas ressortir de contexte perime).
+  const dataDir = join(process.cwd(), "data");
+  let presse = loadPresseFacts(today, dataDir);
+  if (!Object.keys(presse.teams).length) {
+    const latest = latestPresseDate(dataDir, today);
+    if (latest) presse = loadPresseFacts(latest, dataDir);
+  }
   const homeKey = canonicalTeam(home, elo.ratings);
   const awayKey = canonicalTeam(away, elo.ratings);
   const { home: homeFacts, away: awayFacts } = factsForTeams(presse, homeKey, awayKey);

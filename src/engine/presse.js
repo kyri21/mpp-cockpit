@@ -1,7 +1,7 @@
 // Couche presse : fonctions pures, isolees de React et de Gemini.
 // Les faits extraits de la presse ajustent les buts attendus via le prompt Anthropic
 // existant (anti-doublon : un seul canal de contexte, jamais une source de fusion separee).
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 // Retire un eventuel bloc ```json ... ``` puis isole du premier { au dernier }.
@@ -55,5 +55,30 @@ export function loadPresseFacts(date, dataDir) {
     return parsed && parsed.teams ? parsed : { teams: {} };
   } catch {
     return { teams: {} };
+  }
+}
+
+// Repli : date du fichier presse-facts le plus recent du dossier, a condition d'etre a
+// moins de maxAgeDays de refDate. L'app analyse les matchs a venir avec le journal du
+// jour ; le couplage par date exacte est trop rigide, mais un journal trop ancien
+// ressortirait des blessures deja gueries, d'ou la fenetre temporelle. Renvoie null si
+// rien d'exploitable.
+export function latestPresseDate(dataDir, refDate, maxAgeDays = 4) {
+  if (!dataDir) return null;
+  try {
+    const dates = readdirSync(dataDir)
+      .map((f) => f.match(/^presse-facts-(\d{4}-\d{2}-\d{2})\.json$/))
+      .filter(Boolean)
+      .map((m) => m[1])
+      .sort();
+    if (!dates.length) return null;
+    const latest = dates[dates.length - 1];
+    if (refDate) {
+      const ageDays = Math.abs(Date.parse(refDate) - Date.parse(latest)) / 86400000;
+      if (ageDays > maxAgeDays) return null;
+    }
+    return latest;
+  } catch {
+    return null;
   }
 }

@@ -1,70 +1,28 @@
 {
   "source": "L'Equipe",
   "paperDate": "2026-05-29",
-  "generatedAt": "2026-06-06T04:12:53.867Z",
+  "generatedAt": "2026-06-06T09:59:10.819Z",
   "teams": {
-    "Argentina": {
+    "France": {
       "facts": [
-        "Lionel Messi est bien présent malgré son alerte d'il y a quelques jours à l'ischio-jambier gauche.",
-        "Franco Mastantuono (milieu, Real Madrid) est absent.",
-        "Giovani Lo Celso (milieu, Betis Séville) est absent.",
-        "Geronimo Rulli, Leonardo Balerdi, Facundo Medina et Valentin Barco sont dans la liste des 26 joueurs."
+        "Six key players (Lucas Hernandez, Warren Zaïre-Emery, Désiré Doué, Bradley Barcola, Ousmane Dembélé, William Saliba) are exempted from the initial training camp due to club commitments.",
+        "These six players are expected to be rested for the first friendly match against Ivory Coast on June 4th.",
+        "The full squad is anticipated to be available for the second friendly match against Republic of Ireland on June 8th.",
+        "Maxence Lacroix and Jean-Philippe Mateta will join the squad later after their club commitments."
       ]
     },
     "Brazil": {
       "facts": [
-        "Neymar est touché à un mollet (lésion du deuxième grade).",
-        "Neymar a une convalescence de deux à trois semaines.",
-        "Neymar ne disputera pas les deux matches amicaux (contre le Panama et l'Égypte le 7 juin).",
-        "Le sélectionneur accorde quinze jours de plus à Neymar pour être prêt.",
-        "Si Neymar ne se remet pas, Joao Pedro (attaquant de Chelsea) pourrait bénéficier du strapontin disponible.",
-        "Casemiro sera capitaine contre le Panama."
+        "Neymar is injured with a second-grade calf lesion and will miss upcoming friendly matches against Panama and Egypt.",
+        "Neymar has fifteen days to prove his fitness for the World Cup or will be sent home.",
+        "Joao Pedro could replace Neymar in the World Cup squad if he does not recover in time.",
+        "Neymar has not played for Brazil since October 2023 due to a cruciate ligament rupture."
       ]
     },
-    "France": {
+    "Argentina": {
       "facts": [
-        "Lucas Hernandez (Paris-SG), Warren Zaïre-Emery (Paris-SG), Désiré Doué (Paris-SG), Bradley Barcola (Paris-SG), Ousmane Dembélé (Paris-SG) et William Saliba (Arsenal) sont exemptés de la première séance (due à la finale de la Ligue des champions).",
-        "Maxence Lacroix (Crystal Palace) et Jean-Philippe Mateta (Crystal Palace) sont attendus demain (après la finale de Ligue Conférence).",
-        "Les Parisiens et Saliba devraient être ménagés lors du premier match de préparation (jeudi 4 juin contre la Côte d'Ivoire).",
-        "La Coupe du monde débutera pour les Bleus le 16 juin à New York contre le Sénégal."
-      ]
-    },
-    "Panama": {
-      "facts": [
-        "Le Brésil affrontera le Panama en match amical, Neymar ne disputera pas ce match.",
-        "Casemiro sera capitaine pour le Brésil contre le Panama."
-      ]
-    },
-    "Egypt": {
-      "facts": [
-        "Le Brésil affrontera l'Égypte en match amical le 7 juin, Neymar ne disputera pas ce match."
-      ]
-    },
-    "Ivory Coast": {
-      "facts": [
-        "La France affrontera la Côte d'Ivoire en match de préparation le jeudi 4 juin (21h10) à Nantes.",
-        "Les joueurs du Paris-SG et William Saliba devraient être ménagés lors du match contre la Côte d'Ivoire."
-      ]
-    },
-    "Northern Ireland": {
-      "facts": [
-        "La France affrontera l'Irlande du Nord en match de préparation le 8 juin (21h10) à Villeneuve-d'Ascq.",
-        "Tout le monde (tous les 26 joueurs convoqués pour l'équipe de France) pourra participer au match de préparation contre l'Irlande du Nord."
-      ]
-    },
-    "Senegal": {
-      "facts": [
-        "La Coupe du monde débutera pour les Bleus le 16 juin à New York contre le Sénégal."
-      ]
-    },
-    "Iraq": {
-      "facts": [
-        "La France affrontera l'Irak le 22 juin en 2ème journée de phase de groupes."
-      ]
-    },
-    "Norway": {
-      "facts": [
-        "La Norvège affrontera la France le 26 juin en 3ème journée de phase de groupes."
+        "Captain Lionel Messi is in the World Cup squad despite a recent alert for a left hamstring issue.",
+        "Midfielders Franco Mastantuono and Giovani Lo Celso are notably absent from the World Cup squad."
       ]
     }
   }

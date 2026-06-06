@@ -101,12 +101,23 @@ async function main() {
   console.log(`Fichier actif : ${file.uri}`);
 
   const names = Object.keys(elo.ratings);
-  const prompt = `Tu lis l'edition du jour du journal L'Equipe (PDF, ${dateArg}). Extrais, equipe par equipe, les faits concrets utiles a un parieur sur les matchs de Coupe du Monde 2026 a venir : blessures et suspensions de joueurs cles, joueurs menages, compositions probables, etat de forme tres recent, enjeu (equipe deja qualifiee qui fait tourner, match decisif).
+  const prompt = `Tu lis l'edition du jour du journal L'Equipe (PDF, ${dateArg}). Pour les selections de la Coupe du Monde 2026, extrais SEULEMENT les faits qui changent le niveau attendu d'une equipe pour ses matchs a venir.
+
+A retenir (ce qui pese sur les buts attendus) :
+- Blessures, forfaits, suspensions, retours de joueurs cles.
+- Joueurs menages ou turnover annonce, compositions probables.
+- Etat de forme tres recent et net (serie, defense qui prend l'eau, attaque en feu).
+- Enjeu : equipe deja qualifiee qui fait tourner, match decisif.
+
+A EXCLURE absolument :
+- Le recit ou le commentaire d'un match deja joue (chronique minute par minute, notes des joueurs, formules de journaliste).
+- Le simple calendrier (qui joue qui et quand) : c'est deja connu de l'app, ne l'extrais pas.
+- Tout pronostic ou opinion.
 
 Regles strictes :
 - N'extrais QUE ce qui est ecrit dans ce journal. N'invente aucun nom ni aucune information. Si tu n'es pas sur, n'ecris rien.
-- Utilise EXCLUSIVEMENT les noms d'equipes de cette liste comme cles (ce sont les noms canoniques attendus). Si une equipe du journal n'est pas dans la liste, ignore-la.
-- Pour chaque equipe trouvee, donne une liste courte ("facts") de faits en francais, formules tels quels, sans pronostic.
+- Utilise EXCLUSIVEMENT les noms d'equipes de cette liste comme cles (noms canoniques). Si une equipe du journal n'y est pas, ignore-la.
+- Maximum 6 faits par equipe, les plus importants d'abord, chacun en une phrase courte et factuelle en francais.
 
 Liste des noms autorises : ${names.join(", ")}
 

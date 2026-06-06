@@ -1,0 +1,43 @@
+{
+  "source": "L'Equipe",
+  "paperDate": "2026-06-05",
+  "generatedAt": "2026-06-06T10:01:07.349Z",
+  "teams": {
+    "France": {
+      "facts": [
+        "Une défaite amicale 1-2 contre la Côte d'Ivoire a révélé des limitations défensives et un besoin d'ajustements.",
+        "Le coaching avec de nombreux changements a affaibli l'expression collective lors du match amical.",
+        "Le défenseur clé William Saliba est blessé au dos mais sa place n'est pas remise en cause.",
+        "Les défenseurs Ibrahima Konaté et Maxence Lacroix ont montré des performances faibles et ont été impliqués dans les buts encaissés.",
+        "Les latéraux gauches Théo Hernandez et Lucas Digne n'ont pas rassuré, avec Digne impliqué sur les deux buts ivoiriens.",
+        "Le milieu N'Golo Kanté a manqué d'impact offensif et de prise de risque pour frapper."
+      ]
+    },
+    "Ivory Coast": {
+      "facts": [
+        "Guéla Doué a été buteur et passeur décisif contre la France, confirmant sa bonne forme.",
+        "Guéla Doué est en forte confiance après deux saisons solides à Strasbourg avant sa première Coupe du Monde.",
+        "L'équipe partira pour le Mondial avec un surplus de confiance après sa victoire historique contre la France.",
+        "L'équipe démontre des certitudes défensives, un milieu de terrain travailleur et de bons atouts offensifs."
+      ]
+    },
+    "Iraq": {
+      "facts": [
+        "L'Irak a fait match nul 1-1 contre une Espagne largement remaniée, montrant de la résilience.",
+        "L'ailier Marko Farji est un joueur offensif intéressant.",
+        "L'attaquant Aymen Hussein est un joueur clé et un héros national.",
+        "L'équipe n'a pas concédé de tir cadré en seconde période contre l'Espagne.",
+        "Le match nul a renforcé la confiance de l'équipe avant d'affronter la France au Mondial.",
+        "L'équipe est caractérisée par sa patience, sa discipline et son audace tactique."
+      ]
+    },
+    "Spain": {
+      "facts": [
+        "L'Espagne a joué avec une équipe largement remaniée et beaucoup de réserves lors du match amical contre l'Irak.",
+        "Des joueurs clés comme Lamine Yamal, Pedri et Rodri ont été mis au repos.",
+        "Malgré les rotations, l'équipe a créé des occasions et montré de bonnes séquences offensives.",
+        "L'équipe est en phase de préparation et jouera un second match amical contre le Pérou."
+      ]
+    }
+  }
+}

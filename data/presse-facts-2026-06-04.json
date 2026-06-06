@@ -1,0 +1,32 @@
+{
+  "source": "L'Equipe",
+  "paperDate": "2026-06-04",
+  "generatedAt": "2026-06-06T09:59:56.560Z",
+  "teams": {
+    "France": {
+      "facts": [
+        "Kylian Mbappé is in full physical and psychological form for the World Cup preparation.",
+        "Key PSG players (Ousmane Dembélé, Désiré Doué, Bradley Barcola, Warren Zaïre-Emery) are expected to be rested for the friendly match against Ivory Coast.",
+        "William Saliba is experiencing recurrent absences due to injury and played only three out of eight national team matches this season.",
+        "The central defense pairing of Ibrahima Konaté and Dayot Upamecano has been effective, remaining undefeated in nine matches when starting together.",
+        "The team shows a relaxed and competitive atmosphere during training sessions."
+      ]
+    },
+    "Iraq": {
+      "facts": [
+        "Dario Naamo is absent from the squad.",
+        "Jussef Nasrawe is absent from the squad.",
+        "Peter Gwargis, who scored 19 goals this season in the Iraqi Championship, is not included in the squad.",
+        "Montader Madjed, a key player at Hammarby, is not included in the squad.",
+        "The team considers the friendly match against Spain a crucial test for their World Cup group stage preparation."
+      ]
+    },
+    "Spain": {
+      "facts": [
+        "Lamine Yamal, injured since late April, is expected to be ready for the first World Cup match on June 15.",
+        "Lamine Yamal and Nico Williams were absent from recent training sessions due to injury recovery.",
+        "Key players, including Lamine Yamal, Nico Williams, Ruiz, Merino, Zubimendi, and Raya, will be rested for the friendly match against Iraq."
+      ]
+    }
+  }
+}
