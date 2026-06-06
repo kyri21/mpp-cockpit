@@ -8,6 +8,10 @@
 // La cle ANTHROPIC_API_KEY reste cote serveur, jamais exposee au browser.
 
 import Anthropic from "@anthropic-ai/sdk";
+import { join } from "node:path";
+import { loadPresseFacts, factsForTeams, buildPresseBlock } from "../src/engine/presse.js";
+import { canonicalTeam } from "../src/engine/calcul.js";
+import elo from "../data/elo-ratings.json" with { type: "json" };
 
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 
@@ -28,6 +32,14 @@ export default async function handler(req, res) {
 
   const today = date || new Date().toISOString().slice(0, 10);
 
+  // Couche presse : faits du jour extraits localement par Gemini (scripts/revue.mjs).
+  // Ils affinent le contexte Anthropic existant, sans creer de source separee (anti-doublon).
+  const presse = loadPresseFacts(today, join(process.cwd(), "data"));
+  const homeKey = canonicalTeam(home, elo.ratings);
+  const awayKey = canonicalTeam(away, elo.ratings);
+  const { home: homeFacts, away: awayFacts } = factsForTeams(presse, homeKey, awayKey);
+  const presseBlock = buildPresseBlock(home, away, homeFacts, awayFacts);
+
   const prompt = `Nous sommes le ${today}, Coupe du Monde 2026. Match : ${home} contre ${away}.
 Cherche sur le web le contexte recent de ces deux selections : blessures et suspensions de joueurs cles, joueurs menages, etat de forme tres recent, enjeu du match (equipe deja qualifiee qui fait tourner, match decisif), meteo extreme.
 
@@ -37,7 +49,7 @@ Tu ne predis pas le resultat. Tu traduis ce contexte en deux multiplicateurs sur
 - 1.0 = rien de notable.
 - en dessous de 1.0 = l'equipe devrait marquer moins que sa norme (absences offensives, turnover, sans enjeu).
 - au dessus de 1.0 = l'equipe devrait marquer plus (adversaire diminue en defense, forme exceptionnelle).
-Reste mesure : la plupart des multiplicateurs sont entre 0.85 et 1.15. Maximum 0.6 a 1.4.
+Reste mesure : la plupart des multiplicateurs sont entre 0.85 et 1.15. Maximum 0.6 a 1.4.${presseBlock}
 
 Reponds UNIQUEMENT avec ce JSON, rien d'autre :
 {"multHome": float, "multAway": float, "reasoning": "2 phrases max en francais", "factors": ["fait court", "..."]}`;
