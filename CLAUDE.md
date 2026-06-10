@@ -99,7 +99,7 @@ Cotes : The Odds API (the-odds-api.com), plan gratuit 500 requetes par mois. Cot
 
 Elo des selections : `data/elo-ratings.json`, precalcule hors ligne depuis l'historique des matchs internationaux (dataset martj42/international_results, CC0, refetch dans `scripts/buildElo.js` si besoin). Aucune cle, embarque dans le bundle.
 
-Contexte qualitatif : API Anthropic avec recherche web (`api/analyze.js`). Blessures, suspensions, turnover, enjeu, meteo. Renvoie des multiplicateurs et des sources cliquables. La recherche consulte aussi les avis d'experts (anciens pros, journalistes) de RMC Sport pari sportif (rmcsport.bfmtv.com/pari-sportif), retenus comme contexte et non comme pronostic.
+Contexte qualitatif : `api/analyze.js` (Anthropic). Il interprete en multiplicateurs deux couches de contexte STOCKEES : la presse PDF L'Equipe (`data/presse-facts-*.json`, via `scripts/revue.mjs` et Gemini) et la veille web (`data/web-facts-*.json`, via `scripts/veille.mjs`, sites Foot Mercato et RMC). Blessures, suspensions, turnover, enjeu. Renvoie des multiplicateurs et des sources cliquables. Quand aucune veille web n'est stockee pour le match, `analyze.js` retombe sur une recherche web Anthropic en direct (RMC inclus). Voir la section "Couche veille web sites specialises" plus bas.
 
 Presse quotidienne (L'Equipe PDF, via Gemini en local) : le PDF recu chaque jour par WhatsApp se depose dans `presse/` (n'importe quel nom, gitignore, contenu payant jamais commit). En local, `node scripts/revue.mjs` le lit avec Gemini et ecrit `data/presse-facts-AAAA-MM-JJ.json` (faits par equipe, lui commitable). Le runtime `api/analyze.js` charge ce JSON et injecte les faits dans son prompt Anthropic. Comme RMC, c'est du contexte qualitatif qui ajuste les buts attendus, pas une source de fusion separee (principe anti-doublon). Voir la section "Couche presse PDF via Gemini (livree)" plus bas.
 
@@ -116,6 +116,7 @@ Deploy : `git push` sur main (Vercel deploie automatiquement)
 Regenerer l'Elo : `node scripts/buildElo.js` (refetch le CSV si absent). Recalibrer : `node scripts/calibrate.js` puis reporter les constantes dans `calcul.js`.
 Tester le module buteur : `node scripts/test-buteur.mjs` (assertions d'invariants, sans framework).
 Revue de presse du jour (Gemini, local) : `node scripts/revue.mjs` (prend le PDF le plus recent de `presse/` et le date du jour) ou `node scripts/revue.mjs "presse/<fichier>.pdf" AAAA-MM-JJ`. Ensuite committer `data/presse-facts-AAAA-MM-JJ.json` et pousser pour que la prod en beneficie.
+Veille web du jour (Anthropic, local, a la demande) : `node scripts/veille.mjs` (equipes des 2 prochains jours) ou `node scripts/veille.mjs AAAA-MM-JJ --teams "Netherlands,Japan"`. Requiert ANTHROPIC_API_KEY en local. Ensuite committer `data/web-facts-AAAA-MM-JJ.json` et pousser.
 Tester la cle Gemini : `node scripts/test-gemini.mjs`
 Variable d'environnement Gemini : `GEMINI_API_KEY` dans `.env.local` (local) et sur Vercel.
 Variables d'environnement locales : copier `.env.local.example` en `.env.local` et renseigner `ODDS_API_KEY`
@@ -184,8 +185,12 @@ Le dossier `presse/` est gitignore (contenu payant) et trop lourd : il n'existe 
 6. Anti-invention : exiger "n'extrais que ce qui est ecrit dans la presse, n'invente aucun nom ni information". Les modeles completent volontiers avec une memoire perimee (joueurs partis, vieux effectifs) ; se mefier des details nominatifs et les traiter comme indicatifs.
 7. Ne pas avaler les erreurs en silence : en cas d'echec de lecture, logguer (console.error) et renvoyer des fiches vides explicites, pour distinguer "presse indisponible" de "presse neutre".
 
-### 5. Recherche web sites specialises
-La recherche web Anthropic (`api/analyze.js`) couvre deja RMC. Pour elargir (L'Equipe, sites de foot specialises), garder ces sources comme contexte qualitatif qui ajuste les buts attendus, jamais comme pronostic ni source de fusion separee (principe anti-doublon deja en place).
+### 5. Couche veille web sites specialises (livree 2026-06-10)
+Symetrique a la couche PDF, mais pour les sites web. Script local `scripts/veille.mjs` (a la demande) : pour les equipes des matchs a venir, recherche web Anthropic RESTREINTE aux domaines retenus (`footmercato.net`, `rmcsport.bfmtv.com`), recoupement avec les faits du PDF L'Equipe en une etape, ecrit `data/web-facts-AAAA-MM-JJ.json` (faits + sources + bloc recoupement confirme/web-only/pdf-only/contradiction) plus un briefing affiche. Necessite ANTHROPIC_API_KEY en local.
+
+Benchmark des sources (2026-06-10) : Foot Mercato et RMC sont atteignables (retenus) ; Marca et L'Equipe web BLOQUENT le crawler Anthropic (HTTP 400 "domains not accessible"), donc ecartes de l'auto ; L'Equipe reste couvert par la route PDF.
+
+`api/analyze.js` consomme les deux couches stockees (presse-facts + web-facts) via `buildContextBlock` (etiquete par provenance) et produit un seul multiplicateur (anti-doublon). La recherche web en direct n'est plus systematique : elle ne sert qu'en REPLI quand aucun web-facts n'est stocke pour les deux equipes (pas de regression tant que la veille n'a pas tourne, pas de doublon de cout une fois stockee). Spec/plan : `docs/superpowers/{specs,plans}/2026-06-10-veille-web-sites-specialises*`.
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
