@@ -55,25 +55,38 @@ export default async function handler(req, res) {
     for (const src of s) if (src && src.url) webSources.push(src);
   }
 
+  // Si la veille web a deja stocke du contexte pour ces equipes, on l'interprete tel quel
+  // (pas de recherche en direct, moins cher). Sinon, repli sur une recherche web en direct
+  // pour ne pas perdre la couche web tant que la veille n'a pas tourne (pas de regression).
+  const hasStoredWeb = webFor.home.length > 0 || webFor.away.length > 0;
+  const searchClause = hasStoredWeb
+    ? ""
+    : `\nSi le contexte ci-dessus manque d'elements sur une equipe, cherche sur le web (RMC, Foot Mercato, sites de foot specialises) ses blessures, absences, turnover et forme recente. Retiens les faits concrets, pas les pronostics.`;
+
   const prompt = `Nous sommes le ${today}, Coupe du Monde 2026. Match : ${home} contre ${away}.
 Tu ne predis pas le resultat. A partir du contexte connu ci-dessous et de ta connaissance des deux selections, traduis le contexte en deux multiplicateurs sur les buts attendus de chaque equipe :
 - 1.0 = rien de notable.
 - en dessous de 1.0 = l'equipe devrait marquer moins que sa norme (absences offensives, turnover, sans enjeu).
 - au dessus de 1.0 = l'equipe devrait marquer plus (adversaire diminue en defense, forme exceptionnelle).
-Reste mesure : la plupart des multiplicateurs sont entre 0.85 et 1.15. Maximum 0.6 a 1.4. Si le contexte est vide, renvoie 1.0 et 1.0.${contextBlock}
+Reste mesure : la plupart des multiplicateurs sont entre 0.85 et 1.15. Maximum 0.6 a 1.4. Si le contexte est vide, renvoie 1.0 et 1.0.${contextBlock}${searchClause}
 
 Reponds UNIQUEMENT avec ce JSON, rien d'autre :
 {"multHome": float, "multAway": float, "reasoning": "2 phrases max en francais", "factors": ["fait court", "..."]}`;
 
   const client = new Anthropic({ apiKey: key });
+  const createParams = {
+    model: "claude-sonnet-4-6",
+    max_tokens: 1024,
+    messages: [{ role: "user", content: prompt }],
+  };
+  // Outil de recherche web active seulement en repli (aucun contexte web stocke).
+  if (!hasStoredWeb) {
+    createParams.tools = [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }];
+  }
 
   let message;
   try {
-    message = await client.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1024,
-      messages: [{ role: "user", content: prompt }],
-    });
+    message = await client.messages.create(createParams);
   } catch (e) {
     return res.status(502).json({ error: `Erreur Anthropic : ${e.message}` });
   }
@@ -83,6 +96,14 @@ Reponds UNIQUEMENT avec ce JSON, rien d'autre :
     .filter((b) => b.type === "text")
     .map((b) => b.text)
     .join("\n");
+
+  // Sources : celles stockees par la veille, plus celles d'une eventuelle recherche en direct.
+  const sources = [...webSources];
+  for (const b of message.content || []) {
+    if (b.type === "web_search_tool_result" && Array.isArray(b.content)) {
+      for (const r of b.content) if (r.url) sources.push({ title: r.title || r.url, url: r.url });
+    }
+  }
 
   let parsed;
   try {
@@ -101,6 +122,6 @@ Reponds UNIQUEMENT avec ce JSON, rien d'autre :
     multAway: clamp(parsed.multAway, 0.6, 1.4),
     reasoning: parsed.reasoning || "",
     factors: Array.isArray(parsed.factors) ? parsed.factors.slice(0, 6) : [],
-    sources: webSources.slice(0, 5),
+    sources: sources.slice(0, 5),
   });
 }
