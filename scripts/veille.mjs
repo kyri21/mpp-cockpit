@@ -49,17 +49,19 @@ async function veilleTeam(client, team, presseFacts, date) {
 Faits deja extraits aujourd'hui du journal L'Equipe pour cette equipe :
 ${presseFacts.length ? presseFacts.map((f) => "- " + f).join("\n") : "(aucun)"}
 
-Cherche sur le web, UNIQUEMENT sur Foot Mercato et RMC, les informations recentes et concretes sur cette selection pour ses matchs a venir : blessures, forfaits, suspensions, retours, turnover, compositions probables, forme recente, enjeu. N'invente rien, ne garde que ce qui est ecrit sur ces sites.
+Cherche sur le web, UNIQUEMENT sur Foot Mercato et RMC, et retiens SEULEMENT ce qui change le niveau attendu de cette equipe pour ses matchs a venir : blessures, forfaits, suspensions, retours, joueurs menages ou turnover annonce, composition probable, forme recente nette (serie, gros resultat amical, defense fragile, attaque en feu), enjeu particulier.
 
-Puis RECOUPE avec les faits L'Equipe ci-dessus. Reponds UNIQUEMENT avec ce JSON, sans texte autour :
-{"facts": ["faits web concrets, confirmes ou nouveaux, en francais"], "reconciliation": {"confirmedByBoth": ["fait dit par le PDF ET le web"], "webOnly": ["fait vu seulement sur le web"], "pdfOnly": ["fait du PDF non confirme par le web"], "contradictions": ["divergence entre PDF et web"]}}`;
+A EXCLURE absolument : la liste complete de l'effectif et les noms de joueurs simplement selectionnes, la composition du groupe et le calendrier, la chaine TV, l'arbitre, les bios generiques, l'historique. N'invente rien, ne garde que ce qui est ecrit sur ces sites. Au plus 5 faits, les plus importants d'abord, une phrase courte chacun.
+
+Puis RECOUPE avec les faits L'Equipe ci-dessus. Reponds UNIQUEMENT avec ce JSON compact, sans texte autour :
+{"facts": ["faits concrets qui pesent sur les buts attendus"], "reconciliation": {"confirmedByBoth": ["fait dit par le PDF ET le web"], "webOnly": ["fait vu seulement sur le web"], "pdfOnly": ["fait du PDF non confirme par le web"], "contradictions": ["divergence entre PDF et web"]}}`;
 
   let message;
   for (let attempt = 1; attempt <= 4; attempt++) {
     try {
       message = await client.messages.create({
         model: MODEL,
-        max_tokens: 1024,
+        max_tokens: 2048,
         tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 4, allowed_domains: DOMAINS }],
         messages: [{ role: "user", content: prompt }],
       });

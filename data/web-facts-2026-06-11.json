@@ -1,0 +1,399 @@
+{
+  "source": "web (Foot Mercato, RMC)",
+  "date": "2026-06-11",
+  "generatedAt": "2026-06-10T23:49:31.824Z",
+  "teams": {
+    "Mexico": {
+      "facts": [
+        "Forfait sur blessure du gardien titulaire Luis Ángel Malágon : Guillermo Ochoa (40 ans) le remplace et dispute son 6e Mondial.",
+        "Secteur offensif conduit par Santiago Giménez et Raúl Jiménez, renforcé par les naturalisés Álvaro Fidalgo et Julián Quiñones.",
+        "Avantage du terrain à domicile (Mexique co-organisateur), fort soutien populaire attendu."
+      ],
+      "sources": [
+        {
+          "title": "Coupe du Monde 2026 : la presse argentine annonce le probable forfait de Leonardo Balerdi !",
+          "url": "https://www.footmercato.net/a2108594544959576642-coupe-du-monde-2026-la-presse-argentine-annonce-le-probable-forfait-de-leonardo-balerdi"
+        },
+        {
+          "title": "CDM 2026 : la liste du Mexique avec Guillermo Ochoa",
+          "url": "https://www.footmercato.net/a8810799989368412156-cdm-2026-la-liste-du-mexique-avec-guillermo-ochoa"
+        },
+        {
+          "title": "Forfait avec l’Argentine pour la Coupe du Monde, en difficulté à l’OM : l’interminable saison de Leonardo Balerdi",
+          "url": "https://www.footmercato.net/a6148904377939066765-forfait-avec-largentine-pour-la-coupe-du-monde-en-difficulte-a-lom-linterminable-saison-de-leonardo-balerdi"
+        },
+        {
+          "title": "Matchs Coupe du Monde 2026 : résultats et scores",
+          "url": "https://www.footmercato.net/international/coupe-du-monde/match"
+        },
+        {
+          "title": "Coupe du Monde 2026 : les grands absents de la liste des Bleus",
+          "url": "https://www.footmercato.net/a4042245081099238040-coupe-du-monde-2026-les-grands-absents-de-la-liste-des-bleus"
+        }
+      ],
+      "reconciliation": {
+        "confirmedByBoth": [],
+        "webOnly": [
+          "Forfait sur blessure de Malágon, titulaire dans les buts, remplacé par un Ochoa de 40 ans — affaiblit le poste de gardien.",
+          "Duo offensif Giménez-Jiménez annoncé comme fer de lance, avec apport des naturalisés Fidalgo et Quiñones."
+        ],
+        "pdfOnly": [],
+        "contradictions": []
+      }
+    },
+    "South Africa": {
+      "facts": [
+        "Les Bafana Bafana ont rencontré des difficultés de visa pour certains joueurs et membres du staff, retardant leur départ vers le camp d'entraînement au Mexique (Foot Mercato, 01/06/2026) — perturbation logistique de préparation."
+      ],
+      "sources": [
+        {
+          "title": "Hugo Ekitike forfait pour la Coupe du Monde 2026 !",
+          "url": "https://www.footmercato.net/a6913457871616923787-hugo-ekitike-forfait-pour-la-coupe-du-monde-2026"
+        },
+        {
+          "title": "Composition Équipe de Foot Afrique du Sud 2026/2027 - Liste Joueurs",
+          "url": "https://www.footmercato.net/selection/afrique-du-sud/effectif/"
+        },
+        {
+          "title": "CdM 2026, Pays-Bas : Jurriën Timber forfait et remplacé par Geertruida",
+          "url": "https://www.footmercato.net/a8424698755502548840-cdm-2026-pays-bas-jurrien-timber-forfait-et-remplace-par-geertruida"
+        },
+        {
+          "title": "Règlement Football Coupe du Monde 2026 : Nouvelles Règles",
+          "url": "https://www.footmercato.net/international/coupe-du-monde/reglement"
+        },
+        {
+          "title": "Coupe du Monde 2026 : c’est la panique au Maroc !",
+          "url": "https://www.footmercato.net/a6343203669737375671-coupe-du-monde-2026-cest-la-panique-au-maroc"
+        }
+      ],
+      "reconciliation": {
+        "confirmedByBoth": [],
+        "webOnly": [
+          "Retard du départ de la sélection sud-africaine vers le Mexique en raison de problèmes de visa pour certains joueurs et membres du staff (Foot Mercato)."
+        ],
+        "pdfOnly": [],
+        "contradictions": []
+      }
+    },
+    "South Korea": {
+      "facts": [
+        "Son Heung-min (capitaine et attaquant clé, LAFC) est signalé blessé au pied sur Foot Mercato, avec aucune estimation de durée de retour disponible, ce qui menace directement le potentiel offensif coréen.",
+        "La Corée du Sud présente une série de forme récente positive (8 victoires sur les 10 derniers matchs selon Foot Mercato) à l'entame du tournoi.",
+        "Lee Kang-In (PSG) est présent dans le groupe et représente un relais offensif majeur en cas d'indisponibilité de Son."
+      ],
+      "sources": [
+        {
+          "title": "Règlement Football Coupe du Monde 2026 : Nouvelles Règles",
+          "url": "https://www.footmercato.net/international/coupe-du-monde/reglement"
+        },
+        {
+          "title": "Live Corée du Sud - Tchéquie la 1re journée de Coupe du Monde 2026 Canada/Mexico/USA 12/06",
+          "url": "https://www.footmercato.net/live/5333033970834730044-coree-du-sud-vs-tchequie"
+        },
+        {
+          "title": "CdM 2026 : la liste de la Corée du Sud avec Heung-min Son et Kang-in Lee",
+          "url": "https://www.footmercato.net/a5165636572206247837-cdm-2026-la-liste-de-la-coree-du-sud-avec-heung-min-son-et-kang-in-lee"
+        },
+        {
+          "title": "Classement Corée du Sud Coupe du Monde 2026 Canada/Mexico/USA - Footmercato",
+          "url": "https://www.footmercato.net/selection/coree-du-sud/classement"
+        },
+        {
+          "title": "Composition Équipe de Foot Corée du Sud 2026/2027 - Liste Joueurs",
+          "url": "https://www.footmercato.net/selection/coree-du-sud/effectif/"
+        }
+      ],
+      "reconciliation": {
+        "confirmedByBoth": [],
+        "webOnly": [
+          "Son Heung-min blessé au pied (blessure active depuis le 25 mai 2025, durée inconnue) — signalé sur Foot Mercato uniquement.",
+          "Série en cours : 8 victoires lors des 10 derniers matchs (Foot Mercato).",
+          "Lee Kang-In confirmé présent dans le groupe comme relais offensif clé (Foot Mercato)."
+        ],
+        "pdfOnly": [],
+        "contradictions": []
+      }
+    },
+    "Czech Republic": {
+      "facts": [
+        "La Tchéquie a remporté son match de préparation contre le Kosovo (3-1), signal positif avant le Mondial.",
+        "Le groupe compte 17 joueurs évoluant en ligue tchèque, soit un niveau moyen de compétition plus faible qu'attendu pour une équipe au Mondial.",
+        "Adam Karabec (OL), milieu offensif de talent, est absent de la sélection définitive, affaiblissant le potentiel créatif.",
+        "Hugo Sochurek (18 ans, Sparta Prague), plus jeune joueur de l'histoire de la sélection tchèque, est présent mais attendu uniquement en sortie de banc."
+      ],
+      "sources": [
+        {
+          "title": "Coupe du Monde 2026 : la liste de la République tchèque avec Sulc mais sans Karabec",
+          "url": "https://www.footmercato.net/a3158393422426183634-coupe-du-monde-2026-la-liste-de-la-republique-tcheque-avec-sulc-mais-sans-karabec"
+        },
+        {
+          "title": "CdM 2026 : la liste de la Tchéquie avec Pavel Sulc",
+          "url": "https://www.footmercato.net/a6822623076684182301-cdm-2026-la-liste-de-la-tchequie-avec-pavel-sulc"
+        },
+        {
+          "title": "Composition Équipe de Foot Tchéquie 2026/2027 - Liste Joueurs",
+          "url": "https://www.footmercato.net/selection/republique-tcheque/effectif/"
+        },
+        {
+          "title": "Équipe Tchéquie Football : Sélection, Résultat Match, Compo",
+          "url": "https://www.footmercato.net/selection/republique-tcheque/"
+        },
+        {
+          "title": "Les grands absents de la Coupe du Monde 2026 - Foot Mercato",
+          "url": "https://www.footmercato.net/a3823788952928727782-les-grands-absents-de-la-coupe-du-monde-2026"
+        }
+      ],
+      "reconciliation": {
+        "confirmedByBoth": [],
+        "webOnly": [
+          "Victoire en amical contre le Kosovo 3-1 juste avant le Mondial (forme positive).",
+          "Adam Karabec (OL) absent de la sélection définitive.",
+          "17 joueurs sur 26 évoluent en ligue tchèque (niveau moyen du groupe limité).",
+          "Hugo Sochurek (18 ans), plus jeune joueur de l'histoire de la sélection, présent mais en joker offensif."
+        ],
+        "pdfOnly": [],
+        "contradictions": []
+      }
+    },
+    "Canada": {
+      "facts": [
+        "Marcelo Flores (milieu offensif) est forfait pour blessure et remplacé par Jayden Nelson (ailier, Austin FC).",
+        "Alphonso Davies demeure diminué physiquement à l'approche du tournoi, sa situation reste incertaine.",
+        "Moïse Bombito revient tout juste de blessure, sans rythme compétitif.",
+        "Plusieurs cadres ont manqué d'automatismes en préparation, freinés par des blessures et des reprises tardives.",
+        "En match de préparation, le Canada n'a fait que 1-1 contre l'Irlande, incapable de conserver son avance après une première période encourageante."
+      ],
+      "sources": [
+        {
+          "title": "CdM 2026 : le Canada remplace un de ses joueurs",
+          "url": "https://www.footmercato.net/a777211494368286649-cdm-2026-le-canada-remplace-un-de-ses-joueurs"
+        },
+        {
+          "title": "Coupe du Monde 2026 : les grands absents de la liste des Bleus",
+          "url": "https://www.footmercato.net/a4042245081099238040-coupe-du-monde-2026-les-grands-absents-de-la-liste-des-bleus"
+        },
+        {
+          "title": "CdM 2026, Pays-Bas : Jurriën Timber forfait et remplacé par Geertruida",
+          "url": "https://www.footmercato.net/a8424698755502548840-cdm-2026-pays-bas-jurrien-timber-forfait-et-remplace-par-geertruida"
+        },
+        {
+          "title": "Coupe du Monde 2026 : la presse argentine annonce le probable forfait de Leonardo Balerdi !",
+          "url": "https://www.footmercato.net/a2108594544959576642-coupe-du-monde-2026-la-presse-argentine-annonce-le-probable-forfait-de-leonardo-balerdi"
+        },
+        {
+          "title": "Règlement Football Coupe du Monde 2026 : Nouvelles Règles",
+          "url": "https://www.footmercato.net/international/coupe-du-monde/reglement"
+        }
+      ],
+      "reconciliation": {
+        "confirmedByBoth": [],
+        "webOnly": [
+          "Forfait de Marcelo Flores pour blessure, remplacé par Jayden Nelson (Foot Mercato, 10/06/2026).",
+          "Alphonso Davies physiquement diminué, situation incertaine pour le tournoi (Foot Mercato).",
+          "Moïse Bombito de retour de blessure sans rythme (Foot Mercato).",
+          "Nul 1-1 en préparation contre l'Irlande, équipe jugée encore en chantier (Foot Mercato).",
+          "Plusieurs cadres sans automatismes suffisants avant le premier match (Foot Mercato)."
+        ],
+        "pdfOnly": [],
+        "contradictions": []
+      }
+    },
+    "Bosnia and Herzegovina": {
+      "facts": [
+        "3 joueurs blessés dans l'effectif bosnien recensés à ce jour (source Footmercato, page effectif).",
+        "Dzeko (attaquant clé) avait été blessé lors des prolongations du barrage contre l'Italie — sa disponibilité pour le tournoi reste à confirmer, mais il figure dans la liste officielle des 26.",
+        "Bilan du sélectionneur Barbarez peu rassurant : 44% de victoires seulement en 16 matchs officiels (7V-4N-5D)."
+      ],
+      "sources": [
+        {
+          "title": "La Bosnie-Herzégovine dévoile la première liste pour la Coupe du monde 2026",
+          "url": "https://www.footmercato.net/a6514322492676256482-la-bosnie-herzegovine-devoile-la-premiere-liste-pour-la-coupe-du-monde-2026"
+        },
+        {
+          "title": "Composition Équipe de Foot Bosnie 2026/2027 - Liste Joueurs",
+          "url": "https://www.footmercato.net/selection/bosnie-herzegovine/effectif/"
+        },
+        {
+          "title": "Classement Bosnie Coupe du Monde 2026 Canada/Mexico/USA - Footmercato",
+          "url": "https://www.footmercato.net/selection/bosnie-herzegovine/classement"
+        },
+        {
+          "title": "CdM 2026 : le Canada remplace un de ses joueurs",
+          "url": "https://www.footmercato.net/a777211494368286649-cdm-2026-le-canada-remplace-un-de-ses-joueurs"
+        },
+        {
+          "title": "Barrages Coupe du Monde 2026 : la Bosnie élimine l’Italie aux tirs au but !",
+          "url": "https://www.footmercato.net/a6108795174252573425-barrages-coupe-du-monde-2026-la-bosnie-elimine-litalie-aux-tirs-au-but"
+        }
+      ],
+      "reconciliation": {
+        "confirmedByBoth": [],
+        "webOnly": [
+          "3 joueurs blessés dans l'effectif bosnien recensés sur Footmercato au moment du tournoi.",
+          "Dzeko blessé en fin de prolongations du barrage contre l'Italie, mais présent dans la liste officielle des 26 pour le Mondial.",
+          "Bilan Barbarez : 7 victoires, 4 nuls, 5 défaites en 16 matchs officiels (44% de victoires)."
+        ],
+        "pdfOnly": [],
+        "contradictions": []
+      }
+    },
+    "United States": {
+      "facts": [
+        "Tanner Tessmann absent de la sélection USA pour le Mondial (non retenu par Pochettino).",
+        "En amical contre l'Allemagne (6 juin), les USA ont perdu 1-2 : ils ont égalisé en première période mais ont concédé le but de la victoire après la pause (57e).",
+        "En amical contre le Sénégal (31 mai), les USA ont gagné 3-2 : Pulisic passeur et buteur en première période, victoire solide malgré un retour sénégalais.",
+        "Pulisic (AC Milan) présent et actif dans les deux amicaux de préparation, leader offensif confirmé."
+      ],
+      "sources": [
+        {
+          "title": "CdM 2026 : la liste des Etats-Unis avec Weah et Balogun mais sans Tessman",
+          "url": "https://www.footmercato.net/a1717814629847182566-cdm-2026-la-liste-des-etats-unis-avec-weah-et-balogun-mais-sans-tessman"
+        },
+        {
+          "title": "Règlement Football Coupe du Monde 2026 : Nouvelles Règles",
+          "url": "https://www.footmercato.net/international/coupe-du-monde/reglement"
+        },
+        {
+          "title": "Coupe du Monde 2026 : les grands absents de la liste des Bleus",
+          "url": "https://www.footmercato.net/a4042245081099238040-coupe-du-monde-2026-les-grands-absents-de-la-liste-des-bleus"
+        },
+        {
+          "title": "Les grands absents de la Coupe du Monde 2026 - Foot Mercato",
+          "url": "https://www.footmercato.net/a3823788952928727782-les-grands-absents-de-la-coupe-du-monde-2026"
+        },
+        {
+          "title": "CdM 2026 : trois alertes inquiétantes pour Didier Deschamps et les Bleus",
+          "url": "https://www.footmercato.net/a988046266849166339-cdm-2026-trois-alertes-inquietantes-pour-didier-deschamps-et-les-bleus"
+        }
+      ],
+      "reconciliation": {
+        "confirmedByBoth": [],
+        "webOnly": [
+          "Tanner Tessmann non retenu dans la liste des 26 pour le Mondial.",
+          "Défaite 1-2 contre l'Allemagne en amical (6 juin) : niveau défensif perfectible.",
+          "Victoire 3-2 contre le Sénégal en amical (31 mai) : Pulisic passeur et buteur, attaque en forme.",
+          "Pulisic présent et décisif lors des deux matchs de préparation."
+        ],
+        "pdfOnly": [],
+        "contradictions": []
+      }
+    },
+    "Paraguay": {
+      "facts": [
+        "Julio Enciso (attaquant, Strasbourg) incertain : double traumatisme hanche/cuisse contracté en match de préparation contre le Nicaragua, indisponibilité estimée à ~3 semaines, retour envisageable en fin de phase de groupes seulement.",
+        "Gustavo Gómez (capitaine/défenseur central, Palmeiras) touché : deux entrées de blessure distinctes listées sur Foot Mercato (blessure à l'œil + blessure musculaire), sa disponibilité pour le 1er match est incertaine.",
+        "Fabián Balbuena (défenseur central, Grêmio) blessé à la cheville, signalé indisponible sur les pages live Foot Mercato des matchs J1 et J2.",
+        "La défense axiale du Paraguay est doublement fragilisée (Gómez + Balbuena incertains), ce qui affecte directement la solidité défensive attendue."
+      ],
+      "sources": [
+        {
+          "title": "CdM 2026, Paraguay : ça sent mauvais pour Julio Enciso",
+          "url": "https://www.footmercato.net/a1737579192789528156-cdm-2026-paraguay-ca-sent-mauvais-pour-julio-enciso"
+        },
+        {
+          "title": "Live États-Unis - Paraguay la 1re journée de Coupe du Monde 2026 Canada/Mexico/USA 13/06",
+          "url": "https://www.footmercato.net/live/2921916420342293476-etats-unis-vs-paraguay"
+        },
+        {
+          "title": "Classement Paraguay Coupe du Monde 2026 Canada/Mexico/USA - Footmercato",
+          "url": "https://www.footmercato.net/selection/paraguay/classement"
+        },
+        {
+          "title": "Live Turquie - Paraguay la 2e journée de Coupe du Monde 2026 Canada/Mexico/USA 20/06",
+          "url": "https://www.footmercato.net/live/1052959953212844596-turquie-vs-paraguay"
+        },
+        {
+          "title": "Équipe Brésil Football : Sélection, Résultat Match, Compo",
+          "url": "https://www.footmercato.net/selection/bresil/"
+        }
+      ],
+      "reconciliation": {
+        "confirmedByBoth": [],
+        "webOnly": [
+          "Julio Enciso incertain/absent début de tournoi (blessure hanche/cuisse, ~3 semaines)",
+          "Gustavo Gómez doublement touché (œil + muscle), disponibilité incertaine",
+          "Fabián Balbuena blessé à la cheville, incertain"
+        ],
+        "pdfOnly": [],
+        "contradictions": []
+      }
+    },
+    "Qatar": {
+      "facts": [
+        "Lopetegui a retaillé la liste élargie et réintégré Karim Boudiaf (initialement absent), écartant plusieurs joueurs dont le gardien Shehab Ellethy et l'attaquant Soria, ce qui fixe le niveau réel de l'effectif disponible.",
+        "Le Qatar dispute son premier match de groupe contre la Suisse le 13 juin 2026 : aucune blessure côté qatarien signalée sur Foot Mercato (seules des absences suisses sont listées sur la page du match).",
+        "Le Qatar aborde le tournoi en tant que double champion d'Asie en titre, ce qui constitue le seul indicateur de forme récente disponible sur ces sources.",
+        "Aucune suspension, blessure de joueur qatarien, ni annonce de turnover ou composition probable n'est mentionnée sur Foot Mercato ou RMC à ce stade."
+      ],
+      "sources": [
+        {
+          "title": "Règlement Football Coupe du Monde 2026 : Nouvelles Règles",
+          "url": "https://www.footmercato.net/international/coupe-du-monde/reglement"
+        },
+        {
+          "title": "Live Qatar - Suisse la 1re journée de Coupe du Monde 2026 Canada/Mexico/USA 13/06",
+          "url": "https://www.footmercato.net/live/6683809968128424306-qatar-vs-suisse"
+        },
+        {
+          "title": "CdM 2026 : la liste des 26 du Qatar",
+          "url": "https://www.footmercato.net/a4860795604987046396-cdm-2026-la-liste-des-26-du-qatar"
+        },
+        {
+          "title": "Coupe du Monde 2026 : la liste de 34 joueurs du Qatar avec Akram Afif et Almoez Ali",
+          "url": "https://www.footmercato.net/a366647156646677924-coupe-du-monde-2026-la-liste-de-34-joueurs-du-qatar-avec-akram-afif-et-almoez-ali"
+        },
+        {
+          "title": "Matchs Coupe du Monde 2026 : résultats et scores",
+          "url": "https://www.footmercato.net/international/coupe-du-monde/match"
+        }
+      ],
+      "reconciliation": {
+        "confirmedByBoth": [],
+        "webOnly": [
+          "Karim Boudiaf réintégré dans le groupe final après avoir été absent de la liste élargie (Foot Mercato).",
+          "Double statut de champion d'Asie en titre mis en avant comme argument de crédibilité sportive (Foot Mercato).",
+          "Aucune blessure qatarienne signalée à J-2 du premier match contre la Suisse (Foot Mercato, page live du match)."
+        ],
+        "pdfOnly": [],
+        "contradictions": []
+      }
+    },
+    "Switzerland": {
+      "facts": [
+        "Breel Embolo (attaquant clé) n'a pas pu s'envoler avec la Suisse pour les États-Unis en raison d'un blocage de son autorisation ESTA, avec une résolution espérée sous 24h — sa disponibilité pour le début du tournoi reste incertaine.",
+        "La Suisse évolue dans le groupe B avec le Canada, la Bosnie-Herzégovine et le Qatar — poule jugée ouverte, sans adversaire dominant."
+      ],
+      "sources": [
+        {
+          "title": "CdM 2026 : Breel Embolo n’a pas pu s’envoler avec la Suisse",
+          "url": "https://www.footmercato.net/a4334872241484211651-cdm-2026-breel-embolo-na-pas-pu-senvoler-avec-la-suisse"
+        },
+        {
+          "title": "Règlement Football Coupe du Monde 2026 : Nouvelles Règles",
+          "url": "https://www.footmercato.net/international/coupe-du-monde/reglement"
+        },
+        {
+          "title": "Forfait avec l’Argentine pour la Coupe du Monde, en difficulté à l’OM : l’interminable saison de Leonardo Balerdi",
+          "url": "https://www.footmercato.net/a6148904377939066765-forfait-avec-largentine-pour-la-coupe-du-monde-en-difficulte-a-lom-linterminable-saison-de-leonardo-balerdi"
+        },
+        {
+          "title": "CdM 2026 : le Canada remplace un de ses joueurs",
+          "url": "https://www.footmercato.net/a777211494368286649-cdm-2026-le-canada-remplace-un-de-ses-joueurs"
+        },
+        {
+          "title": "Coupe du Monde 2026 : la presse argentine annonce le probable forfait de Leonardo Balerdi !",
+          "url": "https://www.footmercato.net/a2108594544959576642-coupe-du-monde-2026-la-presse-argentine-annonce-le-probable-forfait-de-leonardo-balerdi"
+        }
+      ],
+      "reconciliation": {
+        "confirmedByBoth": [],
+        "webOnly": [
+          "Embolo bloqué à la frontière/aéroport pour problème d'autorisation ESTA au moment du départ de la sélection vers les États-Unis (Foot Mercato)."
+        ],
+        "pdfOnly": [],
+        "contradictions": []
+      }
+    }
+  }
+}
