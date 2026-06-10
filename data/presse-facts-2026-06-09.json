@@ -1,0 +1,50 @@
+{
+  "source": "L'Equipe",
+  "paperDate": "2026-06-09",
+  "generatedAt": "2026-06-10T18:26:17.272Z",
+  "teams": {
+    "France": {
+      "facts": [
+        "Michael Olise est en grande forme, confirmée par un triplé contre l'Irlande du Nord et une capacité à être un atout tranchant.",
+        "Kylian Mbappé n'a pas marqué lors des deux derniers matches et était imprécis, mais il devrait monter en puissance pour la Coupe du monde.",
+        "Le sélectionneur Didier Deschamps a opéré un turnover des joueurs titulaires et remplaçants lors du dernier match de préparation.",
+        "Saliba et Koundé ont été ménagés en étant remplacés à la mi-temps, Saliba revenant de douleurs au dos.",
+        "Dembélé est dans une phase de gestion post-finale de C1, a été difficile à trouver dans l'axe et n'a pas exprimé son potentiel."
+      ]
+    },
+    "Northern Ireland": {
+      "facts": [
+        "L'équipe a marqué un but contre la France suite à une erreur défensive adverse.",
+        "Ils ont réussi à s'approcher davantage des Bleus en seconde période grâce aux occasions de Patrick Kelly."
+      ]
+    },
+    "Senegal": {
+      "facts": [
+        "Le sélectionneur français a désigné le match contre le Sénégal le 16 juin comme le 'vrai rendez-vous' pour lequel les Bleus devront faire beaucoup plus."
+      ]
+    },
+    "Denmark": {
+      "facts": [
+        "Christian Eriksen est en bonne santé et est rentré chez lui après un malaise survenu lors d'un match amical contre l'Ukraine."
+      ]
+    },
+    "Netherlands": {
+      "facts": [
+        "Jurriën Timber est forfait pour cause de blessure à l'aine.",
+        "Ronald Koeman a fait appel à Lutsharel Geertruida en remplacement de Timber.",
+        "Xavi Simons, Matthijs De Ligt et Stefan De Vrij étaient déjà forfaits."
+      ]
+    },
+    "Brazil": {
+      "facts": [
+        "Le traitement de la blessure au mollet de Neymar montre une 'bonne évolution'.",
+        "Neymar, n'ayant pas joué depuis trois semaines, pourrait faire son retour lors des prochains matchs amicaux."
+      ]
+    },
+    "Mexico": {
+      "facts": [
+        "Guillermo Ochoa va devenir le premier joueur à disputer six phases finales de Coupe du monde."
+      ]
+    }
+  }
+}

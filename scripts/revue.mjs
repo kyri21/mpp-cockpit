@@ -101,23 +101,29 @@ async function main() {
   console.log(`Fichier actif : ${file.uri}`);
 
   const names = Object.keys(elo.ratings);
-  const prompt = `Tu lis l'edition du jour du journal L'Equipe (PDF, ${dateArg}). Pour les selections de la Coupe du Monde 2026, extrais SEULEMENT les faits qui changent le niveau attendu d'une equipe pour ses matchs a venir.
+  const prompt = `Tu lis l'edition du jour du journal L'Equipe (PDF, ${dateArg}). Parcours TOUT le journal, page par page, pas seulement la une. Recense CHAQUE selection nationale de football (masculine) citee, meme dans une breve, et pour chacune extrais les faits qui changent le niveau attendu de l'equipe pour ses matchs a venir.
 
-A retenir (ce qui pese sur les buts attendus) :
-- Blessures, forfaits, suspensions, retours de joueurs cles.
+Pour CHAQUE equipe citee, retiens (ce qui pese sur les buts attendus) :
+- Blessures, forfaits, suspensions, retours, joueurs hors groupe ou ajoutes.
 - Joueurs menages ou turnover annonce, compositions probables.
-- Etat de forme tres recent et net (serie, defense qui prend l'eau, attaque en feu).
+- Etat de forme tres recent et net (serie, gros resultat amical, defense qui prend l'eau, attaque en feu, joueur en forme).
 - Enjeu : equipe deja qualifiee qui fait tourner, match decisif.
 
-A EXCLURE absolument :
-- Le recit ou le commentaire d'un match deja joue (chronique minute par minute, notes des joueurs, formules de journaliste).
-- Le simple calendrier (qui joue qui et quand) : c'est deja connu de l'app, ne l'extrais pas.
-- Tout pronostic ou opinion.
+Couvre toutes les equipes concernees, pas seulement le sujet principal du jour.
+
+CONDITION D'ENTREE (stricte) : ne cree une entree pour une equipe QUE si CETTE edition donne une vraie info sur son effectif, une blessure, un retour, du turnover, une forme recente nette ou un enjeu. Si le journal ne fait que citer un match a venir ou un adversaire SANS info sur l'effectif, n'inclus PAS l'equipe du tout. Mieux vaut peu d'equipes bien renseignees que beaucoup d'equipes vides.
+
+A EXCLURE :
+- Le simple calendrier (qui joue qui et quand) : ne jamais ecrire un fait du type "a un match a venir contre X".
+- Le recit ou le commentaire d'un match deja joue (chronique minute par minute, notes individuelles, formules de journaliste).
+- Tout pronostic ou opinion d'expert.
+- Le football feminin, les clubs, les autres sports.
+- Tout rappel historique ou ancien (resultats passes, statistiques d'annees precedentes).
 
 Regles strictes :
-- N'extrais QUE ce qui est ecrit dans ce journal. N'invente aucun nom ni aucune information. Si tu n'es pas sur, n'ecris rien.
-- Utilise EXCLUSIVEMENT les noms d'equipes de cette liste comme cles (noms canoniques). Si une equipe du journal n'y est pas, ignore-la.
-- Maximum 6 faits par equipe, les plus importants d'abord, chacun en une phrase courte et factuelle en francais.
+- N'utilise QUE ce qui est imprime dans CETTE edition du ${dateArg}. N'utilise jamais ta memoire, ni des faits anterieurs, ni des effectifs que tu crois connaitre. N'invente aucun nom ni aucune information. Dans le doute, n'ecris rien.
+- Utilise EXCLUSIVEMENT les noms d'equipes de cette liste comme cles (noms canoniques anglais). Si une equipe citee n'y est pas, ignore-la.
+- Au plus 5 faits par equipe, les plus importants d'abord, chacun en une phrase courte et factuelle en francais.
 
 Liste des noms autorises : ${names.join(", ")}
 
