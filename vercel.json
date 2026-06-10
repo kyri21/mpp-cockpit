@@ -2,7 +2,7 @@
   "framework": "vite",
   "functions": {
     "api/analyze.js": {
-      "includeFiles": "data/presse-facts-*.json"
+      "includeFiles": "data/*-facts-*.json"
     }
   }
 }
