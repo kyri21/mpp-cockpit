@@ -2,6 +2,7 @@
 // Pas de framework : assertions Node simples, dans l'esprit de test-buteur.mjs.
 import {
   cleanJsonText, asciiSlug, factsForTeams, buildPresseBlock, loadPresseFacts, latestPresseDate,
+  loadWebFacts, latestWebDate, teamsPlayingSoon, buildContextBlock,
 } from "../src/engine/presse.js";
 import { canonicalTeam } from "../src/engine/calcul.js";
 import elo from "../data/elo-ratings.json" with { type: "json" };
@@ -58,6 +59,34 @@ const dir3 = mkdtempSync(join(tmpdir(), "empty-"));
 ok(latestPresseDate(dir3, "2026-06-06") === null, "aucun fichier -> null");
 rmSync(dir2, { recursive: true, force: true });
 rmSync(dir3, { recursive: true, force: true });
+
+// loadWebFacts / latestWebDate : meme logique que la presse, fichiers web-facts-*.json.
+const wdir = mkdtempSync(join(tmpdir(), "web-"));
+writeFileSync(join(wdir, "web-facts-2026-06-09.json"), JSON.stringify({ teams: { Netherlands: { facts: ["Timber forfait"] } } }));
+ok(loadWebFacts("2026-06-09", wdir).teams.Netherlands.facts[0] === "Timber forfait", "web-facts present lu");
+ok(JSON.stringify(loadWebFacts("2026-01-01", wdir)) === JSON.stringify({ teams: {} }), "web-facts absent -> teams vide");
+ok(latestWebDate(wdir, "2026-06-10") === "2026-06-09", "latestWebDate prend le plus recent dans la fenetre");
+ok(latestWebDate(wdir, "2026-06-20") === null, "latestWebDate hors fenetre -> null");
+ok(JSON.stringify(loadPresseFacts("2026-06-09", wdir)) === JSON.stringify({ teams: {} }), "loadPresseFacts ignore les web-facts");
+rmSync(wdir, { recursive: true, force: true });
+
+// teamsPlayingSoon : equipes (canoniques) qui jouent dans la fenetre, depuis les fixtures.
+const fixtures = [
+  { date: "2026-06-11", domicile: "Mexique", exterieur: "Afrique du Sud" },
+  { date: "2026-06-12", domicile: "Canada", exterieur: "Bosnie" },
+  { date: "2026-06-20", domicile: "France", exterieur: "Senegal" },
+];
+const fakeCanon = (n) => ({ Mexique: "Mexico", "Afrique du Sud": "South Africa", Canada: "Canada", Bosnie: "Bosnia and Herzegovina", France: "France", Senegal: "Senegal" }[n] || null);
+const soon = teamsPlayingSoon(fixtures, "2026-06-11", 2, fakeCanon);
+ok(soon.includes("Mexico") && soon.includes("South Africa") && soon.includes("Canada"), "equipes de la fenetre presentes");
+ok(!soon.includes("France"), "equipe hors fenetre absente");
+ok(new Set(soon).size === soon.length, "pas de doublon");
+
+// buildContextBlock : bloc etiquete par provenance, vide si rien.
+ok(buildContextBlock("Pays-Bas", "Japon", { home: [], away: [] }, { home: [], away: [] }) === "", "aucun fait -> bloc vide");
+const cb = buildContextBlock("Pays-Bas", "Japon", { home: ["De Ligt absent"], away: [] }, { home: ["Timber forfait"], away: ["Mitoma forfait"] });
+ok(cb.includes("Pays-Bas :") && cb.includes("L'Equipe : De Ligt absent") && cb.includes("Web (Foot Mercato, RMC) : Timber forfait"), "provenance presse et web distinguees");
+ok(cb.includes("Japon :") && cb.includes("Mitoma forfait"), "faits de l'equipe exterieure presents");
 
 // canonicalTeam : nom FR ou EN -> cle canonique du dataset Elo.
 const R = elo.ratings;
