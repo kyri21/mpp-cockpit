@@ -53,7 +53,7 @@ Integration dans yorgios-global : rejete, aucune dependance souhaitee.
 
 Base de donnees : inutile pour 64 matchs sur un mois, localStorage suffit.
 
-Lire le PDF L'Equipe dans l'app : rejete (tranche le 2026-05-31, ne pas re-tenter). Le PDF est image only (aucune couche texte, `pdftotext` rend ~33 caracteres), 59 Mo / 33 pages, donc au dela du plafond de body d'une fonction serverless Vercel (~4,5 Mo) et de la limite PDF d'Anthropic (32 Mo). Une option captures d'ecran a ete prototypee puis retiree (friction inutile cote utilisateur). L'Equipe reste donc une lecture de session sur l'ordi (`/revue`, dossier `presse/`) ; RMC et la recherche web couvrent la couche experte sur iPhone.
+Lire le PDF L'Equipe dans l'app via Anthropic : rejete (tranche le 2026-05-31). Le PDF est image only (aucune couche texte, `pdftotext` rend ~33 caracteres), 20 a 60 Mo / 33 pages, donc au dela du plafond de body d'une fonction serverless Vercel (~4,5 Mo) et de la limite PDF d'Anthropic (32 Mo). Une option captures d'ecran a ete prototypee puis retiree (friction inutile cote utilisateur). CONTOURNE depuis le 2026-06-06 : Gemini lit nativement les PDF image only. La lecture se fait en local (script `scripts/revue.mjs`) et produit un petit JSON de faits que le runtime consomme. Voir la section "Couche presse PDF via Gemini (livree)" plus bas. Anthropic reste pour la recherche web ; Gemini ne sert qu'a la lecture locale du PDF.
 
 ## Le moteur de calcul (a respecter fidelement)
 
@@ -101,7 +101,7 @@ Elo des selections : `data/elo-ratings.json`, precalcule hors ligne depuis l'his
 
 Contexte qualitatif : API Anthropic avec recherche web (`api/analyze.js`). Blessures, suspensions, turnover, enjeu, meteo. Renvoie des multiplicateurs et des sources cliquables. La recherche consulte aussi les avis d'experts (anciens pros, journalistes) de RMC Sport pari sportif (rmcsport.bfmtv.com/pari-sportif), retenus comme contexte et non comme pronostic.
 
-Presse quotidienne (input de session, pas runtime) : le PDF L'Equipe recu chaque jour par WhatsApp se depose dans `presse/lequipe-AAAA-MM-JJ.pdf` (voir `presse/README.md`). Contenu payant, gitignore, jamais commit. Le PDF est image only (pas de couche texte) et trop lourd pour l'API : il n'est donc jamais lu par l'app, seulement en session sur l'ordi (commande `/revue`) pour enrichir le contexte par match (voir "Decisions rejetees"). Comme RMC, c'est du contexte qualitatif qui ajuste les buts attendus, pas une source de fusion separee (principe anti-doublon).
+Presse quotidienne (L'Equipe PDF, via Gemini en local) : le PDF recu chaque jour par WhatsApp se depose dans `presse/` (n'importe quel nom, gitignore, contenu payant jamais commit). En local, `node scripts/revue.mjs` le lit avec Gemini et ecrit `data/presse-facts-AAAA-MM-JJ.json` (faits par equipe, lui commitable). Le runtime `api/analyze.js` charge ce JSON et injecte les faits dans son prompt Anthropic. Comme RMC, c'est du contexte qualitatif qui ajuste les buts attendus, pas une source de fusion separee (principe anti-doublon). Voir la section "Couche presse PDF via Gemini (livree)" plus bas.
 
 Points MPP : pas d'API publique. Saisie manuelle dans l'interface, ou auto-remplissage depuis `data/mpp-points.json` (collecte MobAI) quand le match y figure. Le fichier contient aussi `prono_foule` (repartition reelle de la foule), utilise par la couche valeur.
 
@@ -115,7 +115,9 @@ Build : `npm run build`
 Deploy : `git push` sur main (Vercel deploie automatiquement)
 Regenerer l'Elo : `node scripts/buildElo.js` (refetch le CSV si absent). Recalibrer : `node scripts/calibrate.js` puis reporter les constantes dans `calcul.js`.
 Tester le module buteur : `node scripts/test-buteur.mjs` (assertions d'invariants, sans framework).
-Revue de presse des matchs du jour : `/revue` dans Claude Code
+Revue de presse du jour (Gemini, local) : `node scripts/revue.mjs` (prend le PDF le plus recent de `presse/` et le date du jour) ou `node scripts/revue.mjs "presse/<fichier>.pdf" AAAA-MM-JJ`. Ensuite committer `data/presse-facts-AAAA-MM-JJ.json` et pousser pour que la prod en beneficie.
+Tester la cle Gemini : `node scripts/test-gemini.mjs`
+Variable d'environnement Gemini : `GEMINI_API_KEY` dans `.env.local` (local) et sur Vercel.
 Variables d'environnement locales : copier `.env.local.example` en `.env.local` et renseigner `ODDS_API_KEY`
 
 ## Etat de deploiement (au 2026-05-30)
@@ -156,9 +158,13 @@ La cle API The Odds API ne doit jamais apparaitre dans le code commit, uniquemen
 
 Relire `docs/memoire.md` au debut de chaque session pour reprendre le fil.
 
-## Couche presse PDF et IA : leçons de Rugby Prono (a faire prochaine session, ajoute 2026-06-06)
+## Couche presse PDF via Gemini (livree 2026-06-06, deployee et verifiee en prod)
 
-Contexte : Rugby Prono (app soeur, meme principe de revue de presse PDF en dossier `presse/` plus recherche web sur sites specialises) a fait tourner cette couche pour de vrai sur de vrais matchs et a corrige une cascade de bugs. Voici ce qu'une session MPP devra reprendre pour rendre la lecture de presse reellement utile. Cela MET A JOUR la decision du 2026-05-31 ("lire le PDF L'Equipe dans l'app : rejete") : la raison du rejet (PDF image-only 59 Mo, au dela de la limite Anthropic 32 Mo et du body serverless Vercel ~4,5 Mo) est contournee par Gemini. Le PDF redevient exploitable.
+Etat : LIVREE et active en production. Architecture : (1) local, `scripts/revue.mjs` lit `presse/*.pdf` via la Gemini Files API (`@google/genai`, `gemini-2.5-flash`), en UNE etape (lecture + structuration + rapprochement des noms vers les cles canoniques anglaises de `elo-ratings.json`), et ecrit `data/presse-facts-AAAA-MM-JJ.json`. (2) Runtime, `api/analyze.js` charge ce JSON (jour courant, sinon journal le plus recent via `latestPresseDate`, borne a 4 jours), canonise home/away via `canonicalTeam` (calcul.js), et injecte les faits dans le prompt Anthropic existant. Fonctions pures dans `src/engine/presse.js`, tests `scripts/test-presse.mjs`. `vercel.json` : `includeFiles: data/presse-facts-*.json`. Anti-doublon : un seul multiplicateur, jamais une source de fusion separee. Verifie en prod le 2026-06-06 (France contre Cote d'Ivoire : les faits du 5 juin ressortent dans les `factors`, multHome 0.9 / multAway 1.1). Garde-fous codes : compression ghostscript `/ebook` si PDF > 40 Mo, nom ASCII avant upload (`fileURLToPath` pour les chemins a espace), nettoyage des fences ```json, backoff 503, anti-invention dans le prompt, fiches vides explicites. Spec/plan : `docs/superpowers/{specs,plans}/2026-06-06-presse-pdf-gemini*`.
+
+Routine quotidienne pendant le tournoi : deposer le PDF du jour dans `presse/`, lancer `node scripts/revue.mjs`, committer `data/presse-facts-<jour>.json` et pousser (le push deploie). La presse n'est active pour un match que si un fichier de faits a moins de 4 jours existe.
+
+Contexte historique (lecons de Rugby Prono, app soeur, qui a corrige une cascade de bugs avant cette implementation) : Cela MET A JOUR la decision du 2026-05-31 ("lire le PDF L'Equipe dans l'app : rejete") : la raison du rejet (PDF image-only 59 Mo, au dela de la limite Anthropic 32 Mo et du body serverless Vercel ~4,5 Mo) est contournee par Gemini. Le PDF redevient exploitable.
 
 ### 1. Ajouter Gemini a cote de Claude (pour lire les PDF image-only)
 Anthropic ne lit pas un PDF scanne de 59 Mo (limite 32 Mo, pas d'OCR fiable). Gemini lit nativement les PDF image-only par vision. Ajouter le SDK `@google/genai` et une variable `GEMINI_API_KEY` (locale et Vercel). Modele : `gemini-2.5-flash`. Pieges constates sur le compte de l'utilisateur : `gemini-2.0-flash` renvoie 429 avec `limit: 0` (free tier non alloue a ce compte, ce n'est PAS un epuisement par usage) ; `gemini-1.5-flash` renvoie 404 (deprecie). La cle Gemini fournie commence par `AQ.` (probable jeton ephemere, peut expirer ; sinon regenerer une vraie cle AI Studio format `AIza...`). Anthropic reste pour la recherche web et l'analyse ; Gemini sert la lecture de PDF.
